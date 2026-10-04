@@ -1,0 +1,37 @@
+# Git Ignore for FAM-FIOS
+cloudflared.exe
+*.exe
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Virtual Environments
+venv/
+env/
+ENV/
+.venv/
+
+# Environment variables & secrets
+.env
+*.pem
+*.key
+
+# Database
+# fam_fios.db
+
+# IDEs & Editors
+.vscode/
+.idea/
+*.swp
+
+# OS generated files
+.DS_Store
+Thumbs.db
