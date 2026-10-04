@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAM-FIOS: Federated Adaptive Multi-Tenant Fitness OS</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        code, pre { font-family: 'JetBrains Mono', monospace; }
+        .gradient-border {
+            border-image: linear-gradient(to right, #3b82f6, #8b5cf6) 1;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+    <!-- Navigation / Header -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/20">
+                    <i data-lucide="cpu" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight tracking-tight flex items-center gap-2">
+                        FAM-FIOS
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 font-medium">TRL 3 Prototype</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Federated Adaptive Multi-Tenant Fitness Infrastructure OS (IDF-01)</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <div id="backend-status" class="flex items-center space-x-2 text-xs px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span id="status-label">Engine Ready</span>
+                </div>
+                <button onclick="runSimulation()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition shadow-md shadow-indigo-600/30 flex items-center gap-2">
+                    <i data-lucide="play" class="w-3.5 h-3.5"></i>
+                    Run Closed-Loop Cycle
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+        <!-- Top Metrics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-slate-400 font-medium">Active Tenants (TIGs)</p>
+                    <h3 id="stat-tenants" class="text-2xl font-bold text-white mt-1">3</h3>
+                    <p class="text-xs text-cyan-400 mt-1 flex items-center gap-1">
+                        <i data-lucide="shield-check" class="w-3 h-3"></i> Strictly Isolated
+                    </p>
+                </div>
+                <div class="w-12 h-12 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+                    <i data-lucide="building-2" class="w-6 h-6"></i>
+                </div>
+            </div>
+
+            <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-slate-400 font-medium">SICE Convergence Alerts</p>
+                    <h3 id="stat-sice" class="text-2xl font-bold text-amber-400 mt-1">1 Pending</h3>
+                    <p class="text-xs text-slate-400 mt-1">Pre-emptive Prorated</p>
+                </div>
+                <div class="w-12 h-12 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                    <i data-lucide="trending-up" class="w-6 h-6"></i>
+                </div>
+            </div>
+
+            <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-slate-400 font-medium">FAFIE Federated Rounds</p>
+                    <h3 id="stat-rounds" class="text-2xl font-bold text-indigo-400 mt-1">Round 1</h3>
+                    <p class="text-xs text-indigo-300 mt-1">&epsilon; = 1.5 (Diff. Privacy)</p>
+                </div>
+                <div class="w-12 h-12 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                    <i data-lucide="network" class="w-6 h-6"></i>
+                </div>
+            </div>
+
+            <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-slate-400 font-medium">ACVE Violations Blocked</p>
+                    <h3 id="stat-acve" class="text-2xl font-bold text-rose-400 mt-1">100% Intercepted</h3>
+                    <p class="text-xs text-emerald-400 mt-1">Zero Leakage Detected</p>
+                </div>
+                <div class="w-12 h-12 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400">
+                    <i data-lucide="shield-alert" class="w-6 h-6"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabbed Navigation for Engines -->
+        <div class="border-b border-slate-800 flex space-x-6 text-sm">
+            <button onclick="switchTab('tig')" id="tab-btn-tig" class="tab-btn pb-3 text-cyan-400 border-b-2 border-cyan-400 font-semibold flex items-center gap-2">
+                <i data-lucide="dna" class="w-4 h-4"></i> Tenant Isolation Genome (TIG)
+            </button>
+            <button onclick="switchTab('sice')" id="tab-btn-sice" class="tab-btn pb-3 text-slate-400 hover:text-slate-200 font-medium flex items-center gap-2">
+                <i data-lucide="zap" class="w-4 h-4"></i> SICE & Agents
+            </button>
+            <button onclick="switchTab('fafie')" id="tab-btn-fafie" class="tab-btn pb-3 text-slate-400 hover:text-slate-200 font-medium flex items-center gap-2">
+                <i data-lucide="brain-circuit" class="w-4 h-4"></i> FAFIE Federated Intel
+            </button>
+            <button onclick="switchTab('ptlm')" id="tab-btn-ptlm" class="tab-btn pb-3 text-slate-400 hover:text-slate-200 font-medium flex items-center gap-2">
+                <i data-lucide="server" class="w-4 h-4"></i> PTLM Load Materializer
+            </button>
+            <button onclick="switchTab('acve')" id="tab-btn-acve" class="tab-btn pb-3 text-slate-400 hover:text-slate-200 font-medium flex items-center gap-2">
+                <i data-lucide="shield" class="w-4 h-4"></i> ACVE Compliance Audit
+            </button>
+        </div>
+
+        <!-- TAB 1: TIG Genomes -->
+        <div id="tab-tig" class="tab-pane space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Tenant Card 1 -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 hover:border-slate-700 transition">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <span class="text-[10px] tracking-wider uppercase font-semibold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">Free Tier</span>
+                            <h4 class="text-base font-bold text-white mt-1">Apex Elite Fitness</h4>
+                            <p class="text-xs text-slate-400">ID: <code class="text-cyan-400">tenant_apex</code></p>
+                        </div>
+                        <span class="text-xs font-mono px-2 py-1 bg-slate-800 rounded text-slate-300">Gen 1</span>
+                    </div>
+
+                    <!-- Vectors Preview -->
+                    <div class="space-y-2 text-xs">
+                        <div class="flex justify-between py-1 border-b border-slate-800/60">
+                            <span class="text-slate-400">Members Active:</span>
+                            <span class="font-semibold text-amber-400">46 / 50 (92%)</span>
+                        </div>
+                        <div class="flex justify-between py-1 border-b border-slate-800/60">
+                            <span class="text-slate-400">Peak Traffic Ratio:</span>
+                            <span class="font-semibold text-cyan-400">75% (Morning/Evening)</span>
+                        </div>
+                        <div class="flex justify-between py-1 border-b border-slate-800/60">
+                            <span class="text-slate-400">Allocated CPU / RAM:</span>
+                            <span class="font-mono text-slate-300">1.0 Core / 512 MB</span>
+                        </div>
+                        <div class="flex justify-between py-1 border-b border-slate-800/60">
+                            <span class="text-slate-400">Isolation Score:</span>
+                            <span class="font-semibold text-emerald-400">1.00 (Strict)</span>
+                        </div>
+                        <div class="flex justify-between py-1">
+                            <span class="text-slate-400">Integrity Hash:</span>
+                            <span class="font-mono text-[10px] text-slate-400 truncate max-w-[140px]">4a7de910ef43...</span>
+                        </div>
+                    </div>
+
+                    <button onclick="triggerSiceModal('tenant_apex')" class="w-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-semibold py-2 rounded-lg transition">
+                        View SICE Recommendation
+                    </button>
+                </div>
+
+                <!-- Tenant Card 2 -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 hover:border-slate-700 transition">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <span class="text-[10px] tracking-wider uppercase font-semibold px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/30">Silver Tier</span>
+                            <h4 class="text-base font-bold text-white mt-1">IronCore Athletic Club</h4>
+                            <p class="text-xs text-slate-400">ID: <code class="text-cyan-400">tenant_iron</code></p>
+                        </div>
+                        <span class="text-xs font-mono px-2 py-1 bg-slate-800 rounded text-slate-300">Gen 1</span>
+                    </div>
+
+                    <div class="space-y-2 text-xs">
+                        <div class="flex justify-between py-1 border-b border-slate-800/60">
+                            <span class="text-slate-400">Members Active:</span>
+                            <span class="font-semibold text-emerald-400">145 / 250 (58%)</span>
+                        </div>
+                        <div class="flex justify-between py-1 border-b border-slate-800/60">
+                            <span class="text-slate-400">Peak Traffic Ratio:</span>
+                            <span class="font-semibold text-cyan-400">61%</span>
+                        </div>
+                        <div class="flex justify-between py-1 border-b border-slate-800/60">
+                            <span class="text-slate-400">Allocated CPU / RAM:</span>
+                            <span class="font-mono text-slate-300">2.0 Cores / 1024 MB</span>
+                        </div>
+                        <div class="flex justify-between py-1 border-b border-slate-800/60">
+                            <span class="text-slate-400">Isolation Score:</span>
+                            <span class="font-semibold text-emerald-400">1.00 (Strict)</span>
+                        </div>
+                        <div class="flex justify-between py-1">
+                            <span class="text-slate-400">Integrity Hash:</span>
+                            <span class="font-mono text-[10px] text-slate-400 truncate max-w-[140px]">d08ca2f24f52...</span>
+                        </div>
+                    </div>
+
+                    <button onclick="switchTab('ptlm')" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold py-2 rounded-lg transition">
+                        View PTLM Partitions
+                    </button>
+                </div>
+
+                <!-- Tenant Card 3 -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 hover:border-slate-700 transition">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <span class="text-[10px] tracking-wider uppercase font-semibold px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/30">Gold Enterprise</span>
+                            <h4 class="text-base font-bold text-white mt-1">Titan Gym Network</h4>
+                            <p class="text-xs text-slate-400">ID: <code class="text-cyan-400">tenant_titan</code></p>
+                        </div>
+                        <span class="text-xs font-mono px-2 py-1 bg-slate-800 rounded text-slate-300">Gen 2 (Evolved)</span>
+                    </div>
+
+                    <div class="space-y-2 text-xs">
+                        <div class="flex justify-between py-1 border-b border-slate-800/60">
+                            <span class="text-slate-400">Members Active:</span>
+                            <span class="font-semibold text-purple-400">680 / 1000 (68%)</span>
+                        </div>
+                        <div class="flex justify-between py-1 border-b border-slate-800/60">
+                            <span class="text-slate-400">Trust Reputation:</span>
+                            <span class="font-semibold text-emerald-400">1.0 (Optimal)</span>
+                        </div>
+                        <div class="flex justify-between py-1 border-b border-slate-800/60">
+                            <span class="text-slate-400">Allocated CPU / RAM:</span>
+                            <span class="font-mono text-slate-300">4.0 Cores / 4096 MB</span>
+                        </div>
+                        <div class="flex justify-between py-1 border-b border-slate-800/60">
+                            <span class="text-slate-400">Isolation Score:</span>
+                            <span class="font-semibold text-emerald-400">1.00 (Strict)</span>
+                        </div>
+                        <div class="flex justify-between py-1">
+                            <span class="text-slate-400">Integrity Hash:</span>
+                            <span class="font-mono text-[10px] text-slate-400 truncate max-w-[140px]">19eb3a148ad8...</span>
+                        </div>
+                    </div>
+
+                    <button onclick="switchTab('fafie')" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold py-2 rounded-lg transition">
+                        View FAFIE Contribution
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: SICE & Autonomous Agents -->
+        <div id="tab-sice" class="tab-pane hidden space-y-6">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-base font-bold text-white flex items-center gap-2">
+                            <i data-lucide="zap" class="text-amber-400 w-5 h-5"></i>
+                            Subscription Intent Convergence Engine (SICE)
+                        </h3>
+                        <p class="text-xs text-slate-400">Predictive plan-limit anticipation & pre-emptive prorated upgrades</p>
+                    </div>
+                    <span class="text-xs px-3 py-1 bg-amber-500/10 text-amber-300 rounded-full border border-amber-500/30 font-medium">Pre-Breach Protection Active</span>
+                </div>
+
+                <div class="p-4 rounded-xl bg-amber-950/20 border border-amber-500/30 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div class="space-y-1">
+                        <span class="text-xs font-semibold text-amber-400 uppercase tracking-wider">High Surge Anticipation: tenant_apex</span>
+                        <p class="text-sm text-slate-200">
+                            Projected to reach <strong class="text-white">67 members</strong> by cycle end. Current tier limit is <strong class="text-white">50 members</strong>.
+                        </p>
+                        <p class="text-xs text-slate-400">
+                            Velocity: 1.5 new members/day | Days remaining in cycle: 14 days
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="text-right">
+                            <p class="text-xs text-slate-400">Prorated Upgrade Cost</p>
+                            <p class="text-xl font-bold text-white">$46.20</p>
+                        </div>
+                        <button onclick="executeUpgrade('tenant_apex')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-4 py-2.5 rounded-lg shadow-lg shadow-amber-500/20 transition flex items-center gap-1.5">
+                            <i data-lucide="check-circle" class="w-4 h-4"></i> Accept Upgrade to Silver
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Specialized Agents Activity Feed -->
+                <div class="mt-4">
+                    <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Live Intent Objects Generated by Autonomous Agents</h4>
+                    <div class="space-y-2">
+                        <div class="p-3 bg-slate-950/60 rounded-lg border border-slate-800 text-xs flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <span class="px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/30 font-medium">MembershipAgent</span>
+                                <span class="text-slate-300">Action: <code>EVALUATE_MEMBER_CAPACITY_SURGE</code> &mdash; Apex Elite Fitness is at 92.0% member capacity.</span>
+                            </div>
+                            <span class="text-slate-400 font-mono">Priority: 2</span>
+                        </div>
+                        <div class="p-3 bg-slate-950/60 rounded-lg border border-slate-800 text-xs flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <span class="px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 font-medium">AttendanceAgent</span>
+                                <span class="text-slate-300">Action: <code>SIGNAL_PEAK_ATTENDANCE_CONGESTION</code> &mdash; 75% traffic concentrated in 6-9 AM and 5-8 PM windows.</span>
+                            </div>
+                            <span class="text-slate-400 font-mono">Priority: 3</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: FAFIE Federated Intel -->
+        <div id="tab-fafie" class="tab-pane hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-base font-bold text-white flex items-center gap-2">
+                                <i data-lucide="network" class="text-indigo-400 w-5 h-5"></i>
+                                Cross-Tenant Model Convergence
+                            </h3>
+                            <p class="text-xs text-slate-400">FedAvg aggregation with Differential Privacy (&epsilon;=1.5)</p>
+                        </div>
+                        <button onclick="triggerFederatedRound()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5">
+                            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Run Round
+                        </button>
+                    </div>
+
+                    <div class="h-56 relative">
+                        <canvas id="fedChart"></canvas>
+                    </div>
+
+                    <div class="text-xs text-slate-400 space-y-1">
+                        <p><strong class="text-slate-300">Global Weights:</strong> <code id="global-weights" class="text-cyan-400">[0.2567, 0.4503, 0.2973, 0.4961, 0.1481]</code></p>
+                        <p class="text-emerald-400 flex items-center gap-1"><i data-lucide="check" class="w-3 h-3"></i> Zero raw tenant records shared outside boundary.</p>
+                    </div>
+                </div>
+
+                <!-- Plateau Detection Demo -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+                    <div>
+                        <h3 class="text-base font-bold text-white flex items-center gap-2">
+                            <i data-lucide="activity" class="text-cyan-400 w-5 h-5"></i>
+                            Closed-Loop Member Plateau Detection
+                        </h3>
+                        <p class="text-xs text-slate-400">Monitors member volume overload and triggers automated routine adaptations</p>
+                    </div>
+
+                    <div class="p-4 bg-slate-950/60 rounded-xl border border-slate-800 space-y-3">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-slate-400">Member: <strong>Marcus V. (ID: mem_104)</strong></span>
+                            <span class="text-amber-400 font-semibold flex items-center gap-1">
+                                <i data-lucide="alert-circle" class="w-3 h-3"></i> Plateau Flagged
+                            </span>
+                        </div>
+                        <div class="text-xs text-slate-300">
+                            Logged Sessions (4 weeks): <code>[3200kg, 3205kg, 3195kg, 3202kg]</code>
+                        </div>
+                        <div class="text-xs text-slate-400">
+                            Average Delta: <strong class="text-rose-400">+0.67 kg/session</strong> (Stagnation Threshold &le; 1.0 kg)
+                        </div>
+                        <div class="p-2.5 bg-indigo-500/10 border border-indigo-500/30 rounded-lg text-xs text-indigo-300 flex items-center gap-2">
+                            <i data-lucide="sparkles" class="w-4 h-4 text-indigo-400"></i>
+                            Automated Recommendation Triggered: <strong>INCREASE_VARIETY_AND_DELOAD</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: PTLM Load Materializer -->
+        <div id="tab-ptlm" class="tab-pane hidden space-y-6">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-base font-bold text-white flex items-center gap-2">
+                            <i data-lucide="server" class="text-cyan-400 w-5 h-5"></i>
+                            Predictive Tenant Load Materialization (PTLM)
+                        </h3>
+                        <p class="text-xs text-slate-400">Pre-emptively allocates compute and database partitions ahead of peak hours</p>
+                    </div>
+                    <button onclick="triggerMaterialize()" class="bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5">
+                        <i data-lucide="cpu" class="w-3.5 h-3.5"></i> Materialize Partitions Ahead of Demand
+                    </button>
+                </div>
+
+                <div class="h-60 relative">
+                    <canvas id="loadChart"></canvas>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs pt-2">
+                    <div class="p-3 bg-slate-950/60 rounded-xl border border-slate-800">
+                        <span class="text-slate-400">Morning Peak Window</span>
+                        <p class="text-base font-bold text-white mt-1">06:00 &mdash; 09:00 AM</p>
+                        <p class="text-cyan-400 mt-1">Pre-allocated Partitions: 3</p>
+                    </div>
+                    <div class="p-3 bg-slate-950/60 rounded-xl border border-slate-800">
+                        <span class="text-slate-400">Evening Peak Window</span>
+                        <p class="text-base font-bold text-white mt-1">17:00 &mdash; 20:00 PM</p>
+                        <p class="text-cyan-400 mt-1">Pre-allocated Partitions: 3</p>
+                    </div>
+                    <div class="p-3 bg-slate-950/60 rounded-xl border border-slate-800">
+                        <span class="text-slate-400">Contention Reduction</span>
+                        <p class="text-base font-bold text-emerald-400 mt-1">&darr; 84% Latency Spikes</p>
+                        <p class="text-slate-400 mt-1">Compared to reactive auto-scaling</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 5: ACVE Compliance Audit -->
+        <div id="tab-acve" class="tab-pane hidden space-y-6">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-base font-bold text-white flex items-center gap-2">
+                            <i data-lucide="shield-check" class="text-rose-400 w-5 h-5"></i>
+                            Autonomous Compliance Verification Engine (ACVE)
+                        </h3>
+                        <p class="text-xs text-slate-400">Pre-execution validation of tenant boundaries, RBAC, and quotas</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="testCrossTenantAttack()" class="bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5">
+                            <i data-lucide="shield-alert" class="w-3.5 h-3.5"></i> Test Cross-Tenant Attack
+                        </button>
+                    </div>
+                </div>
+
+                <div class="space-y-2 text-xs">
+                    <div class="p-3 bg-rose-950/20 border border-rose-500/30 rounded-lg flex items-start justify-between">
+                        <div>
+                            <span class="font-bold text-rose-400">[INTERCEPTED] Cross-Tenant Boundary Violation</span>
+                            <p class="text-slate-300 mt-0.5">Caller <code>tenant_iron</code> attempted operation on target <code>tenant_apex</code>.</p>
+                            <p class="text-slate-400 mt-0.5">Verdict: <strong class="text-rose-400">REJECTED_COMPLIANCE_FAILURE</strong></p>
+                        </div>
+                        <span class="font-mono text-slate-400">0 ms leakage</span>
+                    </div>
+
+                    <div class="p-3 bg-rose-950/20 border border-rose-500/30 rounded-lg flex items-start justify-between">
+                        <div>
+                            <span class="font-bold text-rose-400">[INTERCEPTED] RBAC Privilege Escalation</span>
+                            <p class="text-slate-300 mt-0.5">Role <code>member</code> attempted privileged operation <code>UPGRADE_SUBSCRIPTION</code>.</p>
+                            <p class="text-slate-400 mt-0.5">Verdict: <strong class="text-rose-400">REJECTED_COMPLIANCE_FAILURE</strong></p>
+                        </div>
+                        <span class="font-mono text-slate-400">Blocked</span>
+                    </div>
+
+                    <div class="p-3 bg-emerald-950/20 border border-emerald-500/30 rounded-lg flex items-start justify-between">
+                        <div>
+                            <span class="font-bold text-emerald-400">[AUTHORIZED] Member Enrollment Execution</span>
+                            <p class="text-slate-300 mt-0.5">Tenant <code>tenant_titan</code> signed up member under Gold quota.</p>
+                            <p class="text-slate-400 mt-0.5">Verdict: <strong class="text-emerald-400">AUTHORIZED</strong> &rarr; Fragment Logged</p>
+                        </div>
+                        <span class="font-mono text-emerald-400">Passed</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('text-cyan-400', 'border-b-2', 'border-cyan-400', 'font-semibold');
+                el.classList.add('text-slate-400', 'font-medium');
+            });
+
+            const activePane = document.getElementById('tab-' + tabId);
+            const activeBtn = document.getElementById('tab-btn-' + tabId);
+            if (activePane) activePane.classList.remove('hidden');
+            if (activeBtn) {
+                activeBtn.classList.add('text-cyan-400', 'border-b-2', 'border-cyan-400', 'font-semibold');
+                activeBtn.classList.remove('text-slate-400', 'font-medium');
+            }
+            lucide.createIcons();
+        }
+
+        // Charts
+        const fedCtx = document.getElementById('fedChart').getContext('2d');
+        const fedChart = new Chart(fedCtx, {
+            type: 'line',
+            data: {
+                labels: ['Round 1', 'Round 2', 'Round 3', 'Round 4', 'Round 5'],
+                datasets: [{
+                    label: 'Cross-Tenant Global Model Loss',
+                    data: [0.0045, 0.0038, 0.0031, 0.0028, 0.0024],
+                    borderColor: '#6366f1',
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } }
+                }
+            }
+        });
+
+        const loadCtx = document.getElementById('loadChart').getContext('2d');
+        const loadChart = new Chart(loadCtx, {
+            type: 'bar',
+            data: {
+                labels: ['00', '02', '04', '06', '08', '10', '12', '14', '16', '18', '20', '22'],
+                datasets: [{
+                    label: 'Historical Arrival Concurrency',
+                    data: [5, 2, 3, 45, 52, 18, 22, 15, 28, 65, 58, 20],
+                    backgroundColor: function(context) {
+                        const val = context.raw;
+                        return val > 40 ? '#06b6d4' : '#334155';
+                    },
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } }
+                }
+            }
+        });
+
+        function runSimulation() {
+            alert("Executing Full Closed-Loop Cycle: Data Ingestion -> Genome Vector Update -> SICE Evaluation -> FAFIE FedAvg Round -> TEK Evolution!");
+        }
+
+        function executeUpgrade(tenantId) {
+            alert(`SICE Pre-emptive Upgrade Executed for ${tenantId}! Upgraded from Free -> Silver. New member cap is 250.`);
+        }
+
+        function triggerFederatedRound() {
+            alert("FAFIE Federated Round complete: 3 Tenants computed local DP gradients. Aggregated global weights updated with Differential Privacy guarantee!");
+        }
+
+        function triggerMaterialize() {
+            alert("PTLM: Pre-emptively materialized 3 compute containers and 3 DB partitions for upcoming peak window (Lead Time: 45 min).");
+        }
+
+        function testCrossTenantAttack() {
+            alert("ACVE Interception Alert: Malicious caller attempted cross-tenant mutation. Operation rejected with REJECTED_COMPLIANCE_FAILURE and isolation score intact!");
+        }
+    </script>
+</body>
+</html>
