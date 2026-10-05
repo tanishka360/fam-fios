@@ -2463,13 +2463,13 @@ elif portal_mode == "🏋️ Gym Member / User View":
         
         # Initialize default session values if not present
         if "inp_prog_s1" not in st.session_state:
-            st.session_state.inp_prog_s1 = 100
+            st.session_state.inp_prog_s1 = 3000
         if "inp_prog_s2" not in st.session_state:
-            st.session_state.inp_prog_s2 = 150
+            st.session_state.inp_prog_s2 = 3150
         if "inp_prog_s3" not in st.session_state:
-            st.session_state.inp_prog_s3 = 125
+            st.session_state.inp_prog_s3 = 3310
         if "inp_prog_s4" not in st.session_state:
-            st.session_state.inp_prog_s4 = 300
+            st.session_state.inp_prog_s4 = 3480
 
         # Initialize SAVED workout volumes (The graph ONLY changes when this is updated via Save)
         if "saved_prog_volumes" not in st.session_state:
@@ -2483,30 +2483,30 @@ elif portal_mode == "🏋️ Gym Member / User View":
             st.session_state.last_saved_prog_time = datetime.now().strftime("%I:%M %p")
 
         with col_pre1:
-            if st.button("🚀 Progressive Overload", use_container_width=True, help="Load steady +283 kg/session growth trajectory into inputs"):
+            if st.button("🚀 Progressive Overload", use_container_width=True, help="Simulate steady science-backed +5% weekly growth from 3,000 kg baseline"):
                 st.session_state.inp_prog_s1 = 3000
-                st.session_state.inp_prog_s2 = 3250
-                st.session_state.inp_prog_s3 = 3500
-                st.session_state.inp_prog_s4 = 3850
-                st.toast("Preset loaded into inputs! Click '💾 Save & Update My Workout Progress' below to update graph.", icon="📝")
+                st.session_state.inp_prog_s2 = 3150
+                st.session_state.inp_prog_s3 = 3310
+                st.session_state.inp_prog_s4 = 3480
+                st.toast("Progressive Overload loaded (+5% per week from 3,000 kg)! Click '💾 Save & Update My Workout Progress' to update graph.", icon="📝")
                 st.rerun()
 
         with col_pre2:
-            if st.button("⚠️ Plateau Stagnation", use_container_width=True, help="Load flat trajectory showing AI deload intervention into inputs"):
-                st.session_state.inp_prog_s1 = 3200
-                st.session_state.inp_prog_s2 = 3200
-                st.session_state.inp_prog_s3 = 3200
-                st.session_state.inp_prog_s4 = 3200
-                st.toast("Plateau scenario loaded (3,200 kg flatline across all sessions)! Click '💾 Save & Update My Workout Progress' below to update graph.", icon="📝")
+            if st.button("⚠️ Plateau Stagnation", use_container_width=True, help="Simulate complete training plateau (0% gain) from same 3,000 kg baseline"):
+                st.session_state.inp_prog_s1 = 3000
+                st.session_state.inp_prog_s2 = 3000
+                st.session_state.inp_prog_s3 = 3000
+                st.session_state.inp_prog_s4 = 3000
+                st.toast("Plateau scenario loaded (3,000 kg flatline across all sessions)! Click '💾 Save & Update My Workout Progress' to update graph.", icon="📝")
                 st.rerun()
 
         with col_pre3:
-            if st.button("💥 Aggressive PR Surge", use_container_width=True, help="Load rapid volume acceleration into inputs"):
-                st.session_state.inp_prog_s1 = 2800
-                st.session_state.inp_prog_s2 = 3250
-                st.session_state.inp_prog_s3 = 3700
-                st.session_state.inp_prog_s4 = 4200
-                st.toast("Aggressive PR Surge loaded (+450-500 kg weekly compounding)! Click '💾 Save & Update My Workout Progress' below to update graph.", icon="📝")
+            if st.button("💥 Aggressive PR Surge", use_container_width=True, help="Simulate rapid compounding PR gains (+13% per week) from same 3,000 kg baseline"):
+                st.session_state.inp_prog_s1 = 3000
+                st.session_state.inp_prog_s2 = 3400
+                st.session_state.inp_prog_s3 = 3850
+                st.session_state.inp_prog_s4 = 4350
+                st.toast("Aggressive PR Surge loaded (+400-500 kg weekly leaps from 3,000 kg)! Click '💾 Save & Update My Workout Progress' to update graph.", icon="📝")
                 st.rerun()
 
         with col_pre4:
