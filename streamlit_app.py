@@ -1919,6 +1919,324 @@ elif portal_mode == "🗄️ Central Users & Members Database":
 # 4. GYM MEMBER / USER VIEW
 # ==============================================================================
 elif portal_mode == "🏋️ Gym Member / User View":
+    WEEKLY_WORKOUT_ROUTINES = {
+        "Monday": {
+            "title": "Push Day: Chest, Shoulders & Triceps",
+            "focus": "Upper body pressing strength & pectoral hypertrophy",
+            "duration": "55 mins",
+            "calories_est": "380 kcal",
+            "badge_color": "#3B82F6",
+            "exercises": [
+                {
+                    "name": "Barbell Bench Press (Flat)",
+                    "sets_reps": "4 sets × 6-8 reps",
+                    "rest": "90s rest",
+                    "target": "Pectoralis Major, Anterior Deltoids",
+                    "cue": "Retract scapulae, plant feet firmly, explode on upward push with controlled 2s eccentric."
+                },
+                {
+                    "name": "Incline Dumbbell Chest Press",
+                    "sets_reps": "3 sets × 8-10 reps",
+                    "rest": "75s rest",
+                    "target": "Clavicular (Upper) Pectorals",
+                    "cue": "Set bench to 30°, maintain neutral wrist alignment, deep stretch at bottom."
+                },
+                {
+                    "name": "Seated Overhead Dumbbell Shoulder Press",
+                    "sets_reps": "3 sets × 10-12 reps",
+                    "rest": "60s rest",
+                    "target": "Anterior & Lateral Deltoids",
+                    "cue": "Brace core tightly, press weights up in slight arc without hyperextending lower spine."
+                },
+                {
+                    "name": "Cable Tricep Rope Pushdowns",
+                    "sets_reps": "3 sets × 12-15 reps",
+                    "rest": "45s rest",
+                    "target": "Triceps Brachii (Lateral & Long Head)",
+                    "cue": "Pin elbows to torso, spread the rope handles wide at contraction with 1s pause."
+                }
+            ],
+            "nutrition": {
+                "calories": "2,550 kcal",
+                "protein": "180g",
+                "carbs": "280g",
+                "fats": "65g",
+                "pre_workout": "Oatmeal with sliced banana & whey isolate (60 mins before training)",
+                "post_workout": "Grilled chicken breast or paneer tikka with steamed rice & sweet potatoes",
+                "water": "3.5 Liters"
+            }
+        },
+        "Tuesday": {
+            "title": "Pull Day: Back, Lats & Biceps Hypertrophy",
+            "focus": "Posterior chain thickness, lat width & arm development",
+            "duration": "60 mins",
+            "calories_est": "420 kcal",
+            "badge_color": "#10B981",
+            "exercises": [
+                {
+                    "name": "Conventional Barbell Deadlifts",
+                    "sets_reps": "3 sets × 5 reps",
+                    "rest": "120s rest",
+                    "target": "Erector Spinae, Latissimus Dorsi, Glutes & Hamstrings",
+                    "cue": "Hip hinge setup, pull slack out of bar, drive the floor away through midfoot."
+                },
+                {
+                    "name": "Wide-Grip Lat Pulldowns",
+                    "sets_reps": "4 sets × 8-10 reps",
+                    "rest": "75s rest",
+                    "target": "Latissimus Dorsi & Teres Major",
+                    "cue": "Initiate pull by depressing scapulae; pull elbows towards back pockets."
+                },
+                {
+                    "name": "Seated Cable Rows (Close Grip)",
+                    "sets_reps": "3 sets × 10-12 reps",
+                    "rest": "60s rest",
+                    "target": "Rhomboids, Middle Trapezius & Lats",
+                    "cue": "Keep chest elevated, avoid excessive rocking, hold contraction for 1 second."
+                },
+                {
+                    "name": "Incline Dumbbell Bicep Curls",
+                    "sets_reps": "3 sets × 12 reps",
+                    "rest": "45s rest",
+                    "target": "Biceps Brachii (Long Head)",
+                    "cue": "Full supination at peak contraction; do not let elbows drift forward."
+                }
+            ],
+            "nutrition": {
+                "calories": "2,500 kcal",
+                "protein": "180g",
+                "carbs": "270g",
+                "fats": "65g",
+                "pre_workout": "Whole grain toast with peanut butter & black coffee",
+                "post_workout": "Double whey shake with blueberries, plus dal khichdi or quinoa chicken bowl",
+                "water": "3.5 Liters"
+            }
+        },
+        "Wednesday": {
+            "title": "Legs & Core: Quads, Hamstrings & Calves",
+            "focus": "Lower body maximal strength, quad development & hip stability",
+            "duration": "65 mins",
+            "calories_est": "460 kcal",
+            "badge_color": "#F59E0B",
+            "exercises": [
+                {
+                    "name": "Barbell Back Squats",
+                    "sets_reps": "4 sets × 6-8 reps",
+                    "rest": "120s rest",
+                    "target": "Quadriceps, Gluteus Maximus, Core Stabilizers",
+                    "cue": "Take deep belly breath into belt, knees track outward over second toes, hit depth."
+                },
+                {
+                    "name": "Romanian Deadlifts (RDL)",
+                    "sets_reps": "3 sets × 10 reps",
+                    "rest": "90s rest",
+                    "target": "Hamstrings & Gluteal Fold",
+                    "cue": "Soft knee flexion, push hips straight back until deep hamstring stretch is felt."
+                },
+                {
+                    "name": "Leg Press / Walking Lunges",
+                    "sets_reps": "3 sets × 12 reps per leg",
+                    "rest": "60s rest",
+                    "target": "Quadriceps & Glute Medius",
+                    "cue": "Maintain upright posture, knee aligned over ankle at bottom position."
+                },
+                {
+                    "name": "Standing Calf Raises & Hanging Knee Raises",
+                    "sets_reps": "4 sets × 15 reps",
+                    "rest": "45s rest",
+                    "target": "Gastrocnemius & Rectus Abdominis",
+                    "cue": "2-second pause at maximum stretch and 1-second flex at contraction."
+                }
+            ],
+            "nutrition": {
+                "calories": "2,650 kcal",
+                "protein": "185g",
+                "carbs": "310g",
+                "fats": "70g",
+                "pre_workout": "Banana smoothie with greek yogurt, honey & chia seeds",
+                "post_workout": "Paneer/tofu curry or chicken stir-fry with brown basmati rice & lentils",
+                "water": "4.0 Liters"
+            }
+        },
+        "Thursday": {
+            "title": "Active Recovery & Mobility Flow",
+            "focus": "Joint decompression, tissue regeneration & aerobic base",
+            "duration": "40 mins",
+            "calories_est": "220 kcal",
+            "badge_color": "#8B5CF6",
+            "exercises": [
+                {
+                    "name": "Zone 2 Incline Treadmill Walk",
+                    "sets_reps": "1 session × 30 mins",
+                    "rest": "Steady state",
+                    "target": "Aerobic Capacity & Mitochondrial Health",
+                    "cue": "Keep heart rate steady at 115-130 BPM; conversational brisk walk."
+                },
+                {
+                    "name": "Thoracic Spine Foam Rolling & Extensions",
+                    "sets_reps": "3 sets × 10 reps",
+                    "rest": "30s rest",
+                    "target": "Thoracic Mobility & Postural Alignment",
+                    "cue": "Do not hyperextend lumbar; breathe deeply through tight rib angles."
+                },
+                {
+                    "name": "90/90 Hip Flow & Deep Glute Stretch",
+                    "sets_reps": "3 sets × 60s per side",
+                    "rest": "30s rest",
+                    "target": "Hip Internal & External Rotators",
+                    "cue": "Sit tall, square shoulders to lead knee, breathe calmly into tight areas."
+                },
+                {
+                    "name": "Banded Face Pulls",
+                    "sets_reps": "3 sets × 15 reps",
+                    "rest": "45s rest",
+                    "target": "Rear Deltoids & Scapular Retractors",
+                    "cue": "Light band resistance; pull hands wide past ears to recruit external rotators."
+                }
+            ],
+            "nutrition": {
+                "calories": "2,250 kcal",
+                "protein": "175g",
+                "carbs": "220g",
+                "fats": "65g",
+                "pre_workout": "Green matcha tea or coconut water with electrolytes",
+                "post_workout": "Sprouted moong salad, boiled eggs or tofu bhurji with walnuts",
+                "water": "3.5 Liters"
+            }
+        },
+        "Friday": {
+            "title": "Upper Body Power & Hypertrophy",
+            "focus": "Upper body volumizing, shoulder width & upper chest",
+            "duration": "55 mins",
+            "calories_est": "390 kcal",
+            "badge_color": "#EC4899",
+            "exercises": [
+                {
+                    "name": "Incline Barbell Bench Press",
+                    "sets_reps": "4 sets × 6-8 reps",
+                    "rest": "90s rest",
+                    "target": "Upper Clavicular Pectoral Head",
+                    "cue": "Bar lands 2 inches below clavicle; control descent before driving up."
+                },
+                {
+                    "name": "T-Bar Rows / Chest Supported Rows",
+                    "sets_reps": "4 sets × 8-10 reps",
+                    "rest": "75s rest",
+                    "target": "Mid Back, Trapezius & Lats",
+                    "cue": "Drive elbows straight back; keep chin tucked with flat lumbar spine."
+                },
+                {
+                    "name": "Dumbbell Lateral Raises",
+                    "sets_reps": "4 sets × 12-15 reps",
+                    "rest": "45s rest",
+                    "target": "Lateral Deltoids (Boulder Shoulders)",
+                    "cue": "Lead with elbows; lean torso 5° forward to place tension on side head."
+                },
+                {
+                    "name": "Hammer Curls & Overhead Tricep Extension",
+                    "sets_reps": "3 sets × 12 reps (Superset)",
+                    "rest": "60s rest",
+                    "target": "Brachialis & Triceps Long Head",
+                    "cue": "Strict tempo, zero hip swing; lock arms out smoothly at top."
+                }
+            ],
+            "nutrition": {
+                "calories": "2,500 kcal",
+                "protein": "180g",
+                "carbs": "275g",
+                "fats": "65g",
+                "pre_workout": "Apple slices with almond butter & whey protein",
+                "post_workout": "Tandoori chicken / grilled soya chaap with chapati & cucumber raita",
+                "water": "3.5 Liters"
+            }
+        },
+        "Saturday": {
+            "title": "Posterior Chain & Functional Conditioning",
+            "focus": "Posterior chain power, unilateral balance & core anti-rotation",
+            "duration": "55 mins",
+            "calories_est": "430 kcal",
+            "badge_color": "#06B6D4",
+            "exercises": [
+                {
+                    "name": "Trap Bar Deadlifts / Barbell Hip Thrusts",
+                    "sets_reps": "4 sets × 8 reps",
+                    "rest": "90s rest",
+                    "target": "Glutes, Hamstrings, Quadriceps & Traps",
+                    "cue": "Neutral spine, lock out glutes hard at the top without backward lean."
+                },
+                {
+                    "name": "Bulgarian Split Squats (Dumbbell)",
+                    "sets_reps": "3 sets × 10 reps per leg",
+                    "rest": "60s rest",
+                    "target": "Quadriceps & Glute Medius",
+                    "cue": "Rear foot on bench laces-down; drive through front heel."
+                },
+                {
+                    "name": "Kettlebell Farmer's Carries",
+                    "sets_reps": "4 sets × 40 meters",
+                    "rest": "60s rest",
+                    "target": "Grip Strength, Forearms & Core Bracing",
+                    "cue": "Pack shoulders down, tall posture, short steady steps."
+                },
+                {
+                    "name": "Cable Woodchoppers & Plank Hold",
+                    "sets_reps": "3 sets × 12 reps / side + 45s plank",
+                    "rest": "45s rest",
+                    "target": "Obliques & Transverse Abdominis",
+                    "cue": "Rotate from thoracic spine, keep pelvis locked forward."
+                }
+            ],
+            "nutrition": {
+                "calories": "2,600 kcal",
+                "protein": "180g",
+                "carbs": "290g",
+                "fats": "70g",
+                "pre_workout": "Whole grain toast with avocado & 2 poached eggs",
+                "post_workout": "Lentil stew / chicken curry with wild rice and mixed green salad",
+                "water": "4.0 Liters"
+            }
+        },
+        "Sunday": {
+            "title": "Full Rest & CNS Restoration",
+            "focus": "Deep nervous system reset, cellular recovery & meal prep",
+            "duration": "25 mins (Casual)",
+            "calories_est": "180 kcal",
+            "badge_color": "#64748B",
+            "exercises": [
+                {
+                    "name": "Nature Walk or Casual Stroll",
+                    "sets_reps": "20-30 mins outdoor walk",
+                    "rest": "Casual pace",
+                    "target": "Mental De-stress & Lymphatic Circulation",
+                    "cue": "Enjoy sunlight, breathe naturally, no heart rate spikes."
+                },
+                {
+                    "name": "Full Body Myofascial Foam Rolling",
+                    "sets_reps": "10-15 mins full body",
+                    "rest": "Relaxed",
+                    "target": "Calves, Quads, IT Band, Lats",
+                    "cue": "Spend 30-45 seconds on trigger points, breathe through discomfort."
+                },
+                {
+                    "name": "Diaphragmatic Box Breathing",
+                    "sets_reps": "5 mins (4s in, 4s hold, 4s out, 4s hold)",
+                    "rest": "Meditative",
+                    "target": "Parasympathetic Nervous System Activation",
+                    "cue": "Inhale through nose expanding belly, slow relaxed exhalations."
+                }
+            ],
+            "nutrition": {
+                "calories": "2,200 kcal",
+                "protein": "170g",
+                "carbs": "200g",
+                "fats": "65g",
+                "pre_workout": "Hydrating herbal tea or fresh coconut water",
+                "post_workout": "Light Mediterranean salad with chickpeas, feta/paneer, olive oil",
+                "water": "3.5 Liters"
+            }
+        }
+    }
+
     st.markdown(f"## 🏋️ **Member Fitness Companion — {active_genome.gym_name}**")
     
     # Check if there is an active member profile in session from registration or DB
@@ -1960,6 +2278,44 @@ elif portal_mode == "🏋️ Gym Member / User View":
         st.markdown(f"**Member ID:** `{default_mem_id}` &nbsp;|&nbsp; **Home Gym:** `{active_genome.gym_name}` ({default_mem_branch}) &nbsp;|&nbsp; **Goal:** `{default_mem_goal}`")
     with col_user_badge:
         st.success("🟢 Active & Verified")
+
+    # 📅 Today's Scheduled Workout Banner (Acc. to Current Day of Week)
+    today_dt = datetime.now()
+    today_day_name = today_dt.strftime("%A")
+    today_date_str = today_dt.strftime("%A, %d %B %Y")
+    today_routine = WEEKLY_WORKOUT_ROUTINES.get(today_day_name, WEEKLY_WORKOUT_ROUTINES["Monday"])
+
+    st.markdown(f"""
+    <div style="background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); border-left: 6px solid {today_routine['badge_color']}; border-radius: 12px; padding: 18px 22px; margin-top: 6px; margin-bottom: 18px; box-shadow: 0 4px 14px rgba(0,0,0,0.25);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div>
+                <span style="background: {today_routine['badge_color']}22; color: {today_routine['badge_color']}; font-weight: 700; font-size: 0.8rem; padding: 4px 12px; border-radius: 9999px; border: 1px solid {today_routine['badge_color']}55; letter-spacing: 0.5px;">
+                    📅 TODAY'S SCHEDULED WORKOUT &bull; {today_day_name.upper()} ({today_date_str})
+                </span>
+                <h3 style="margin: 8px 0 4px 0; color: #F8FAFC; font-size: 1.35rem; font-weight: 700;">
+                    {today_routine['title']}
+                </h3>
+                <p style="margin: 0; color: #94A3B8; font-size: 0.92rem;">
+                    🎯 <b>Target Focus:</b> {today_routine['focus']} &nbsp;|&nbsp; ⏱️ <b>Duration:</b> {today_routine['duration']} &nbsp;|&nbsp; 🔥 <b>Est. Burn:</b> {today_routine['calories_est']}
+                </p>
+            </div>
+            <div>
+                <span style="background: rgba(255,255,255,0.06); color: #E2E8F0; padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; border: 1px solid rgba(255,255,255,0.12); display: inline-block;">
+                    ⚡ {len(today_routine['exercises'])} Exercises Scheduled Today
+                </span>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    with st.expander(f"📋 **Quick View: Today's ({today_day_name}) Exercise List & Targets**", expanded=False):
+        c_ex_cols = st.columns(len(today_routine['exercises']))
+        for i, ex in enumerate(today_routine['exercises']):
+            with c_ex_cols[i]:
+                st.markdown(f"**{i+1}. {ex['name']}**")
+                st.caption(f"🎯 {ex['sets_reps']}")
+                st.caption(f"⏱️ {ex['rest']}")
+        st.info("💡 **Ready to train?** Open **Tab 4 (🥗 AI Workout & Meal Guide)** to check off exercises as you complete them, or record your lifts in **Tab 2 (📝 Record Workout Log)**!")
 
     st.markdown("---")
 
@@ -2524,17 +2880,91 @@ elif portal_mode == "🏋️ Gym Member / User View":
             """)
 
     with member_tabs[3]:
-        st.markdown("### 🥗 **AI Workout & Nutrition Guide**")
-        c_guide1, c_guide2 = st.columns(2)
+        st.markdown("### 🥗 **AI Workout & Daily Nutrition Guide**")
+        st.caption(f"Personalized training & fueling regimen calibrated for **{default_mem_name}** &bull; Goal: **{default_mem_goal}**")
+
+        days_list = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+        today_idx = days_list.index(today_day_name) if today_day_name in days_list else 0
+
+        c_day_sel, c_day_badge = st.columns([3, 1])
+        with c_day_sel:
+            selected_day = st.radio(
+                "📅 **Select Training Day:**",
+                days_list,
+                index=today_idx,
+                horizontal=True,
+                key=f"sel_workout_day_{default_mem_id}"
+            )
+        with c_day_badge:
+            if selected_day == today_day_name:
+                st.success(f"📍 **Today ({today_day_name})**")
+            else:
+                st.info(f"Viewing: **{selected_day}**")
+
+        current_routine = WEEKLY_WORKOUT_ROUTINES.get(selected_day, WEEKLY_WORKOUT_ROUTINES["Monday"])
+
+        # Top summary card for the selected day
+        st.markdown(f"""
+        <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 14px 18px; margin-bottom: 16px;">
+            <h4 style="margin: 0 0 6px 0; color: #F1F5F9;">🏋️ {selected_day}'s Focus: {current_routine['title']}</h4>
+            <p style="margin: 0; color: #94A3B8; font-size: 0.9rem;">
+                🎯 <b>Target:</b> {current_routine['focus']} &nbsp;&bull;&nbsp; ⏱️ <b>Estimated Duration:</b> {current_routine['duration']} &nbsp;&bull;&nbsp; 🔥 <b>Estimated Caloric Burn:</b> {current_routine['calories_est']}
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        c_guide1, c_guide2 = st.columns([3, 2])
         with c_guide1:
-            st.markdown("#### 🏋️ **Personalized Weekly Training Split**")
-            st.write("- **Monday (Push):** Heavy Bench Press (4x6), Incline DB Press (3x10), Tricep Extension (3x12)")
-            st.write("- **Wednesday (Pull):** Conventional Deadlifts (3x5), Lat Pulldowns (4x8), Bicep Curls (3x12)")
-            st.write("- **Friday (Legs):** Barbell Back Squats (4x8), Romanian Deadlifts (3x10), Calves (4x15)")
+            st.markdown(f"#### 🏋️ **{selected_day}'s Exercise Plan & Checklist**")
+            st.caption("Check off exercises as you complete your workout sets:")
+
+            completed_count = 0
+            for idx, ex in enumerate(current_routine["exercises"]):
+                chk_key = f"chk_ex_{default_mem_id}_{selected_day}_{idx}"
+                is_done = st.checkbox(
+                    f"**{idx + 1}. {ex['name']}** — `{ex['sets_reps']}`",
+                    key=chk_key,
+                    help=f"Rest: {ex['rest']} | Target: {ex['target']}"
+                )
+                if is_done:
+                    completed_count += 1
+                st.markdown(f"""
+                <div style="background: rgba(15, 23, 42, 0.45); border-left: 3px solid #38BDF8; border-radius: 6px; padding: 8px 12px; margin-top: -6px; margin-bottom: 12px;">
+                    <div style="font-size: 0.84rem; color: #94A3B8;">🎯 <b>Target:</b> {ex['target']} &nbsp;|&nbsp; ⏱️ <b>Rest:</b> {ex['rest']}</div>
+                    <div style="font-size: 0.82rem; color: #CBD5E1; margin-top: 3px;">💡 <b>Form Cue:</b> <i>{ex['cue']}</i></div>
+                </div>
+                """, unsafe_allow_html=True)
+
+            total_ex = len(current_routine["exercises"])
+            pct_done = completed_count / total_ex if total_ex > 0 else 0
+            st.progress(pct_done, text=f"Session Progress: {completed_count}/{total_ex} Exercises Completed ({int(pct_done * 100)}%)")
+            if completed_count == total_ex and total_ex > 0:
+                st.balloons()
+                st.success(f"🎉 **Outstanding work, {default_mem_name}!** You completed all scheduled exercises for {selected_day}!")
+
         with c_guide2:
-            st.markdown("#### 🥗 **Daily Nutrition Targets**")
-            st.write("- **Target Daily Calories:** `2,450 kcal`")
-            st.write("- **Protein:** `175 grams` &nbsp;|&nbsp; **Carbs:** `260 grams` &nbsp;|&nbsp; **Healthy Fats:** `65 grams`")
+            st.markdown("#### 🥗 **Daily Nutrition & Fueling Plan**")
+            nut = current_routine["nutrition"]
+            st.markdown(f"""
+            <div style="background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; padding: 14px 16px; margin-bottom: 14px;">
+                <div style="font-size: 0.8rem; color: #10B981; font-weight: 700; text-transform: uppercase;">Daily Energy Target</div>
+                <div style="font-size: 1.5rem; font-weight: 800; color: #F8FAFC; margin: 4px 0 8px 0;">{nut['calories']}</div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <span style="background: rgba(59, 130, 246, 0.15); color: #60A5FA; padding: 4px 8px; border-radius: 6px; font-size: 0.82rem; font-weight: 600;">🥩 Protein: {nut['protein']}</span>
+                    <span style="background: rgba(245, 158, 11, 0.15); color: #FBBF24; padding: 4px 8px; border-radius: 6px; font-size: 0.82rem; font-weight: 600;">🍞 Carbs: {nut['carbs']}</span>
+                    <span style="background: rgba(16, 185, 129, 0.15); color: #34D399; padding: 4px 8px; border-radius: 6px; font-size: 0.82rem; font-weight: 600;">🥑 Fats: {nut['fats']}</span>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            st.markdown(f"**⚡ Pre-Workout Fueling:**")
+            st.info(f"🥣 {nut['pre_workout']}")
+
+            st.markdown(f"**🔋 Post-Workout Recovery:**")
+            st.success(f"🍗 {nut['post_workout']}")
+
+            st.markdown(f"**💧 Daily Hydration Target:**")
+            st.write(f"🚰 Minimum **{nut['water']}** of water distributed throughout the day.")
 
 # ==============================================================================
 # 4. PATENT & ARCHITECTURE DEEP-DIVE
