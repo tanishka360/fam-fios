@@ -2438,26 +2438,26 @@ elif portal_mode == "🏋️ Gym Member / User View":
         with col_pre2:
             if st.button("⚠️ Plateau Stagnation", use_container_width=True, help="Load flat trajectory showing AI deload intervention into inputs"):
                 st.session_state.inp_prog_s1 = 3200
-                st.session_state.inp_prog_s2 = 3205
-                st.session_state.inp_prog_s3 = 3195
-                st.session_state.inp_prog_s4 = 3202
-                st.toast("Plateau scenario loaded into inputs! Click '💾 Save & Update My Workout Progress' below to update graph.", icon="📝")
+                st.session_state.inp_prog_s2 = 3200
+                st.session_state.inp_prog_s3 = 3200
+                st.session_state.inp_prog_s4 = 3200
+                st.toast("Plateau scenario loaded (3,200 kg flatline across all sessions)! Click '💾 Save & Update My Workout Progress' below to update graph.", icon="📝")
                 st.rerun()
 
         with col_pre3:
             if st.button("💥 Aggressive PR Surge", use_container_width=True, help="Load rapid volume acceleration into inputs"):
                 st.session_state.inp_prog_s1 = 2800
-                st.session_state.inp_prog_s2 = 3300
-                st.session_state.inp_prog_s3 = 3100
-                st.session_state.inp_prog_s4 = 3900
-                st.toast("PR Surge loaded into inputs! Click '💾 Save & Update My Workout Progress' below to update graph.", icon="📝")
+                st.session_state.inp_prog_s2 = 3250
+                st.session_state.inp_prog_s3 = 3700
+                st.session_state.inp_prog_s4 = 4200
+                st.toast("Aggressive PR Surge loaded (+450-500 kg weekly compounding)! Click '💾 Save & Update My Workout Progress' below to update graph.", icon="📝")
                 st.rerun()
 
         with col_pre4:
             if st.button("🧪 Sample Test (100-300kg)", use_container_width=True, help="Load lightweight 100-300 kg test trajectory into inputs"):
                 st.session_state.inp_prog_s1 = 100
                 st.session_state.inp_prog_s2 = 150
-                st.session_state.inp_prog_s3 = 125
+                st.session_state.inp_prog_s3 = 200
                 st.session_state.inp_prog_s4 = 300
                 st.toast("Sample test loaded into inputs! Click '💾 Save & Update My Workout Progress' below to update graph.", icon="📝")
                 st.rerun()
@@ -2465,30 +2465,30 @@ elif portal_mode == "🏋️ Gym Member / User View":
         st.markdown("")
 
         # 2. Session Volume Inputs with Real-time Deltas
-        st.markdown("##### 📝 **Recent Workout Volume Logs (kg Lifted = Sets × Reps × Weight):**")
+        st.markdown("##### 📝 **Recent Workout Volume Logs (kg Lifted = Sets × Reps × Weight across 4 Weeks):**")
         c_v1, c_v2, c_v3, c_v4 = st.columns(4)
         
         with c_v1:
-            s1_vol = st.number_input("Session 1: Leg Day", min_value=0, max_value=25000, step=25, key="inp_prog_s1", help="Sets × Reps × Weight (kg)")
-            st.caption("🏁 **Session 1 Baseline**")
+            s1_vol = st.number_input("Session 1 (Week 1 Baseline)", min_value=0, max_value=25000, step=25, key="inp_prog_s1", help="Sets × Reps × Weight (kg)")
+            st.caption("🏁 **Week 1 Baseline**")
         with c_v2:
-            s2_vol = st.number_input("Session 2: Push Day", min_value=0, max_value=25000, step=25, key="inp_prog_s2", help="Sets × Reps × Weight (kg)")
+            s2_vol = st.number_input("Session 2 (Week 2)", min_value=0, max_value=25000, step=25, key="inp_prog_s2", help="Sets × Reps × Weight (kg)")
             d2_input = s2_vol - s1_vol
             p2_input = (d2_input / max(s1_vol, 1)) * 100
             d2_icon = "🟢" if d2_input > 0 else ("🔴" if d2_input < 0 else "⚪")
-            st.caption(f"{d2_icon} **Δ vs S1:** `{d2_input:+,.0f} kg ({p2_input:+.1f}%)`")
+            st.caption(f"{d2_icon} **Δ vs W1:** `{d2_input:+,.0f} kg ({p2_input:+.1f}%)`")
         with c_v3:
-            s3_vol = st.number_input("Session 3: Pull Day", min_value=0, max_value=25000, step=25, key="inp_prog_s3", help="Sets × Reps × Weight (kg)")
+            s3_vol = st.number_input("Session 3 (Week 3)", min_value=0, max_value=25000, step=25, key="inp_prog_s3", help="Sets × Reps × Weight (kg)")
             d3_input = s3_vol - s2_vol
             p3_input = (d3_input / max(s2_vol, 1)) * 100
             d3_icon = "🟢" if d3_input > 0 else ("🔴" if d3_input < 0 else "⚪")
-            st.caption(f"{d3_icon} **Δ vs S2:** `{d3_input:+,.0f} kg ({p3_input:+.1f}%)`")
+            st.caption(f"{d3_icon} **Δ vs W2:** `{d3_input:+,.0f} kg ({p3_input:+.1f}%)`")
         with c_v4:
-            s4_vol = st.number_input("Session 4: Upper Day", min_value=0, max_value=25000, step=25, key="inp_prog_s4", help="Sets × Reps × Weight (kg)")
+            s4_vol = st.number_input("Session 4 (Week 4 Latest)", min_value=0, max_value=25000, step=25, key="inp_prog_s4", help="Sets × Reps × Weight (kg)")
             d4_input = s4_vol - s3_vol
             p4_input = (d4_input / max(s3_vol, 1)) * 100
             d4_icon = "🟢" if d4_input > 0 else ("🔴" if d4_input < 0 else "⚪")
-            st.caption(f"{d4_icon} **Δ vs S3:** `{d4_input:+,.0f} kg ({p4_input:+.1f}%)`")
+            st.caption(f"{d4_icon} **Δ vs W3:** `{d4_input:+,.0f} kg ({p4_input:+.1f}%)`")
 
         # Check for unsaved changes between input boxes and saved progress
         current_inputs = [int(s1_vol), int(s2_vol), int(s3_vol), int(s4_vol)]
@@ -2599,7 +2599,7 @@ elif portal_mode == "🏋️ Gym Member / User View":
         </div>
         """, unsafe_allow_html=True)
         
-        session_names = ["1. Leg Day", "2. Push Day", "3. Pull Day", "4. Upper Day"]
+        session_names = ["Week 1 (Base)", "Week 2", "Week 3", "Week 4 (Latest)"]
         benchmark_target = [round(volumes[0] * (1.05 ** i)) for i in range(4)]
         deltas_str = ["Baseline"] + [f"{d:+,.0f} kg" for d in diffs]
         
