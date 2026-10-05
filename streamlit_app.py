@@ -1,5 +1,6 @@
 import sys
 import os
+import random
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -1216,9 +1217,9 @@ elif portal_mode == "📝 New Member Registration & Payment":
 
         # Handle Payment Completion Logic
         if payment_authorized:
-            new_mem_id = f"MEM-{datetime.utcnow().strftime('%Y%m%d')}-{np.random.randint(1000, 9999)}"
-            txn_id = f"TXN-2026-{datetime.utcnow().strftime('%m%d%H%M')}-{np.random.randint(1000, 9999)}"
-            bank_rrn = f"RRN{np.random.randint(100000000000, 999999999999)}"
+            new_mem_id = f"MEM-{datetime.utcnow().strftime('%Y%m%d')}-{random.randint(1000, 9999)}"
+            txn_id = f"TXN-2026-{datetime.utcnow().strftime('%m%d%H%M')}-{random.randint(1000, 9999)}"
+            bank_rrn = f"RRN{random.randint(100000000000, 999999999999)}"
 
             # Persist to SQLite Database
             with SessionLocal() as db:
