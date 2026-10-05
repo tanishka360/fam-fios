@@ -2046,55 +2046,70 @@ elif portal_mode == "🏋️ Gym Member / User View":
         )
 
         # 1. 1-Click Interactive Presets / Scenarios
-        st.markdown("##### ⚡ **Interactive Scenarios (1-Click Exploration):**")
+        st.markdown("##### ⚡ **Interactive Scenarios (Select to Load Into Inputs):**")
         col_pre1, col_pre2, col_pre3, col_pre4 = st.columns(4)
         
         # Initialize default session values if not present
         if "inp_prog_s1" not in st.session_state:
-            st.session_state.inp_prog_s1 = 3000
+            st.session_state.inp_prog_s1 = 100
         if "inp_prog_s2" not in st.session_state:
-            st.session_state.inp_prog_s2 = 3250
+            st.session_state.inp_prog_s2 = 150
         if "inp_prog_s3" not in st.session_state:
-            st.session_state.inp_prog_s3 = 3500
+            st.session_state.inp_prog_s3 = 125
         if "inp_prog_s4" not in st.session_state:
-            st.session_state.inp_prog_s4 = 3850
+            st.session_state.inp_prog_s4 = 300
+
+        # Initialize SAVED workout volumes (The graph ONLY changes when this is updated via Save)
+        if "saved_prog_volumes" not in st.session_state:
+            st.session_state.saved_prog_volumes = [
+                int(st.session_state.inp_prog_s1),
+                int(st.session_state.inp_prog_s2),
+                int(st.session_state.inp_prog_s3),
+                int(st.session_state.inp_prog_s4)
+            ]
+        if "last_saved_prog_time" not in st.session_state:
+            st.session_state.last_saved_prog_time = datetime.now().strftime("%I:%M %p")
 
         with col_pre1:
-            if st.button("🚀 Progressive Overload", use_container_width=True, help="Load steady +283 kg/session growth trajectory"):
+            if st.button("🚀 Progressive Overload", use_container_width=True, help="Load steady +283 kg/session growth trajectory into inputs"):
                 st.session_state.inp_prog_s1 = 3000
                 st.session_state.inp_prog_s2 = 3250
                 st.session_state.inp_prog_s3 = 3500
                 st.session_state.inp_prog_s4 = 3850
+                st.toast("Preset loaded into inputs! Click '💾 Save & Update My Workout Progress' below to update graph.", icon="📝")
                 st.rerun()
 
         with col_pre2:
-            if st.button("⚠️ Plateau Stagnation", use_container_width=True, help="Load flat trajectory showing AI deload intervention"):
+            if st.button("⚠️ Plateau Stagnation", use_container_width=True, help="Load flat trajectory showing AI deload intervention into inputs"):
                 st.session_state.inp_prog_s1 = 3200
                 st.session_state.inp_prog_s2 = 3205
                 st.session_state.inp_prog_s3 = 3195
                 st.session_state.inp_prog_s4 = 3202
+                st.toast("Plateau scenario loaded into inputs! Click '💾 Save & Update My Workout Progress' below to update graph.", icon="📝")
                 st.rerun()
 
         with col_pre3:
-            if st.button("💥 Aggressive PR Surge", use_container_width=True, help="Load rapid volume acceleration"):
+            if st.button("💥 Aggressive PR Surge", use_container_width=True, help="Load rapid volume acceleration into inputs"):
                 st.session_state.inp_prog_s1 = 2800
                 st.session_state.inp_prog_s2 = 3300
                 st.session_state.inp_prog_s3 = 3100
                 st.session_state.inp_prog_s4 = 3900
+                st.toast("PR Surge loaded into inputs! Click '💾 Save & Update My Workout Progress' below to update graph.", icon="📝")
                 st.rerun()
 
         with col_pre4:
-            if st.button("🧪 Sample Test (100-300kg)", use_container_width=True, help="Load lightweight 100-300 kg test trajectory"):
+            if st.button("🧪 Sample Test (100-300kg)", use_container_width=True, help="Load lightweight 100-300 kg test trajectory into inputs"):
                 st.session_state.inp_prog_s1 = 100
                 st.session_state.inp_prog_s2 = 150
                 st.session_state.inp_prog_s3 = 125
                 st.session_state.inp_prog_s4 = 300
+                st.toast("Sample test loaded into inputs! Click '💾 Save & Update My Workout Progress' below to update graph.", icon="📝")
                 st.rerun()
 
         st.markdown("")
 
         # 2. Session Volume Inputs with Real-time Deltas
-        st.markdown("##### 📝 **Recent Workout Volume Logs (kg Lifted):**")
+        st.markdown("##### 📝 **Recent Workout Volume Logs (kg Lifted = Sets × Reps × Weight):**")
         c_v1, c_v2, c_v3, c_v4 = st.columns(4)
         
         with c_v1:
@@ -2102,24 +2117,72 @@ elif portal_mode == "🏋️ Gym Member / User View":
             st.caption("🏁 **Session 1 Baseline**")
         with c_v2:
             s2_vol = st.number_input("Session 2: Push Day", min_value=0, max_value=25000, step=25, key="inp_prog_s2", help="Sets × Reps × Weight (kg)")
-            d2 = s2_vol - s1_vol
-            p2 = (d2 / max(s1_vol, 1)) * 100
-            d2_icon = "🟢" if d2 > 0 else ("🔴" if d2 < 0 else "⚪")
-            st.caption(f"{d2_icon} **Δ vs S1:** `{d2:+,.0f} kg ({p2:+.1f}%)`")
+            d2_input = s2_vol - s1_vol
+            p2_input = (d2_input / max(s1_vol, 1)) * 100
+            d2_icon = "🟢" if d2_input > 0 else ("🔴" if d2_input < 0 else "⚪")
+            st.caption(f"{d2_icon} **Δ vs S1:** `{d2_input:+,.0f} kg ({p2_input:+.1f}%)`")
         with c_v3:
             s3_vol = st.number_input("Session 3: Pull Day", min_value=0, max_value=25000, step=25, key="inp_prog_s3", help="Sets × Reps × Weight (kg)")
-            d3 = s3_vol - s2_vol
-            p3 = (d3 / max(s2_vol, 1)) * 100
-            d3_icon = "🟢" if d3 > 0 else ("🔴" if d3 < 0 else "⚪")
-            st.caption(f"{d3_icon} **Δ vs S2:** `{d3:+,.0f} kg ({p3:+.1f}%)`")
+            d3_input = s3_vol - s2_vol
+            p3_input = (d3_input / max(s2_vol, 1)) * 100
+            d3_icon = "🟢" if d3_input > 0 else ("🔴" if d3_input < 0 else "⚪")
+            st.caption(f"{d3_icon} **Δ vs S2:** `{d3_input:+,.0f} kg ({p3_input:+.1f}%)`")
         with c_v4:
             s4_vol = st.number_input("Session 4: Upper Day", min_value=0, max_value=25000, step=25, key="inp_prog_s4", help="Sets × Reps × Weight (kg)")
-            d4 = s4_vol - s3_vol
-            p4 = (d4 / max(s3_vol, 1)) * 100
-            d4_icon = "🟢" if d4 > 0 else ("🔴" if d4 < 0 else "⚪")
-            st.caption(f"{d4_icon} **Δ vs S3:** `{d4:+,.0f} kg ({p4:+.1f}%)`")
+            d4_input = s4_vol - s3_vol
+            p4_input = (d4_input / max(s3_vol, 1)) * 100
+            d4_icon = "🟢" if d4_input > 0 else ("🔴" if d4_input < 0 else "⚪")
+            st.caption(f"{d4_icon} **Δ vs S3:** `{d4_input:+,.0f} kg ({p4_input:+.1f}%)`")
 
-        volumes = [s1_vol, s2_vol, s3_vol, s4_vol]
+        # Check for unsaved changes between input boxes and saved progress
+        current_inputs = [int(s1_vol), int(s2_vol), int(s3_vol), int(s4_vol)]
+        has_unsaved_changes = (current_inputs != st.session_state.saved_prog_volumes)
+
+        # 3. Explicit SAVE ACTION BAR: Graph ONLY changes when user clicks this button
+        c_save_btn, c_save_status = st.columns([1.5, 2.5])
+        with c_save_btn:
+            save_prog_clicked = st.button(
+                "💾 Save & Update My Workout Progress",
+                type="primary",
+                use_container_width=True,
+                help="Saves your current volume logs and re-renders the trajectory graph and AI plateau analysis"
+            )
+        with c_save_status:
+            if has_unsaved_changes:
+                st.warning("⚠️ **Unsaved Changes**: You adjusted session numbers above. Click **'Save & Update My Workout Progress'** to reflect these changes on the graph!")
+            else:
+                st.success(f"🟢 **Graph is Up-to-Date with Saved Progress** (Last Saved: `{st.session_state.last_saved_prog_time}`)")
+
+        if save_prog_clicked:
+            st.session_state.saved_prog_volumes = current_inputs
+            st.session_state.last_saved_prog_time = datetime.now().strftime("%I:%M:%S %p")
+            
+            # Recalibrate and commit event to backend TIGE genome
+            user_sessions = [{"total_volume_kg": v} for v in current_inputs]
+            analysis = plateau_detector.analyze_member_trajectory(active_tenant_id, default_mem_id, user_sessions)
+            evt_avg_delta = float(np.mean([current_inputs[i] - current_inputs[i-1] for i in range(1, 4)]))
+            evt_is_plateau = bool(evt_avg_delta <= 1.0)
+            evt = TenantEvent(
+                tenant_id=active_tenant_id,
+                role_context="member",
+                event_type="plateau_analysis",
+                operational_params={
+                    "member_id": default_mem_id,
+                    "avg_delta_kg": evt_avg_delta,
+                    "is_plateau": evt_is_plateau,
+                    "recommended_action": analysis["recommended_action"]
+                }
+            )
+            tige.update_genome_from_event(evt)
+            if evt_is_plateau:
+                st.toast("⚠️ Plateau detected: Engine recalibrated with deload recommendation!", icon="🔄")
+            else:
+                st.toast("🎉 Progressive overload recorded! Engine updated.", icon="🚀")
+            st.toast("✅ Workout progress successfully saved! Graph and metrics updated.", icon="💾")
+            st.rerun()
+
+        # The graph and metrics are calculated STRICTLY from saved_prog_volumes
+        volumes = st.session_state.saved_prog_volumes
         diffs = [volumes[i] - volumes[i-1] for i in range(1, len(volumes))]
         avg_delta = float(np.mean(diffs))
         total_lifted = sum(volumes)
@@ -2129,13 +2192,13 @@ elif portal_mode == "🏋️ Gym Member / User View":
 
         st.markdown("---")
 
-        # 3. Live KPI Performance Metrics
+        # 4. Live KPI Performance Metrics (Driven by Saved Progress)
         kpi_c1, kpi_c2, kpi_c3, kpi_c4 = st.columns(4)
         with kpi_c1:
             st.metric(
-                label="🏋️ Latest Session Volume",
-                value=f"{s4_vol:,.0f} kg",
-                delta=f"{s4_vol - s3_vol:+,.0f} kg vs S3"
+                label="🏋️ Latest Saved Volume",
+                value=f"{volumes[-1]:,.0f} kg",
+                delta=f"{diffs[-1]:+,.0f} kg vs S3"
             )
         with kpi_c2:
             st.metric(
@@ -2158,29 +2221,66 @@ elif portal_mode == "🏋️ Gym Member / User View":
 
         st.markdown("")
 
-        # 4. Interactive Altair Dual-Layer Progression Chart
+        # 5. Easy-to-Understand High-Clarity Visual Graph
         st.markdown("##### 📊 **Volume Trajectory vs. Optimal +5% Overload Benchmark**")
+
+        # Visual Legend Banner (Clear color-coded explanation)
+        status_pill = '<span style="background: rgba(16, 185, 129, 0.2); color: #6EE7B7; border: 1px solid rgba(16, 185, 129, 0.4); padding: 4px 12px; border-radius: 20px; font-weight: bold; font-size: 12px;">🟢 STATUS: OPTIMAL OVERLOAD</span>' if not is_plateau else '<span style="background: rgba(239, 68, 68, 0.2); color: #FCA5A5; border: 1px solid rgba(239, 68, 68, 0.4); padding: 4px 12px; border-radius: 20px; font-weight: bold; font-size: 12px;">⚠️ STATUS: PLATEAU STAGNATION</span>'
+
+        st.markdown(f"""
+        <div style="background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 12px; padding: 14px 18px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; gap: 24px; align-items: center; flex-wrap: wrap;">
+                <span style="display: flex; align-items: center; gap: 8px; color: #F8FAFC; font-size: 13px; font-weight: 600;">
+                    <span style="display: inline-block; width: 14px; height: 14px; background: {'#EF4444' if is_plateau else '#10B981'}; border-radius: 3px;"></span>
+                    {'🔴 Stagnant Volume (kg)' if is_plateau else '🟢 Your Lifted Volume (Actual kg)'}
+                </span>
+                <span style="display: flex; align-items: center; gap: 8px; color: #94A3B8; font-size: 13px; font-weight: 600;">
+                    <span style="display: inline-block; width: 20px; height: 0; border-top: 3px dashed #38BDF8;"></span>
+                    🔵 Science-Based +5% Overload Goal
+                </span>
+            </div>
+            {status_pill}
+        </div>
+        """, unsafe_allow_html=True)
         
         session_names = ["1. Leg Day", "2. Push Day", "3. Pull Day", "4. Upper Day"]
         benchmark_target = [round(volumes[0] * (1.05 ** i)) for i in range(4)]
-        deltas_str = ["Baseline", f"{d2:+,.0f} kg", f"{d3:+,.0f} kg", f"{d4:+,.0f} kg"]
+        deltas_str = ["Baseline"] + [f"{d:+,.0f} kg" for d in diffs]
         
+        labels_str = []
+        for i, (v, d) in enumerate(zip(volumes, deltas_str)):
+            if i == 0:
+                labels_str.append(f"{v:,.0f} kg (Base)")
+            else:
+                pct = ((v - volumes[i-1]) / max(volumes[i-1], 1)) * 100
+                labels_str.append(f"{v:,.0f} kg ({pct:+.0f}%)")
+
+        target_labels = ["" for _ in range(4)]
+        target_labels[3] = f"🎯 Goal: {benchmark_target[3]:,.0f} kg"
+
+        perf_status = ["Baseline Reference"] + [
+            f"Exceeding Target by +{v - b:,.0f} kg 🎉" if v >= b else f"Below Target by -{b - v:,.0f} kg ⚠️"
+            for v, b in zip(volumes[1:], benchmark_target[1:])
+        ]
+
         df_chart = pd.DataFrame({
             "Session": session_names,
             "Order": [1, 2, 3, 4],
             "Actual Volume (kg)": volumes,
             "Target Benchmark (kg)": benchmark_target,
-            "Formatted Actual": [f"{v:,.0f} kg" for v in volumes],
-            "Growth Delta": deltas_str
+            "Data Label": labels_str,
+            "Target Label": target_labels,
+            "Growth Delta": deltas_str,
+            "Performance Status": perf_status
         })
 
         main_color = "#EF4444" if is_plateau else "#10B981"
         accent_color = "#F87171" if is_plateau else "#34D399"
-        bench_color = "#3B82F6"
+        bench_color = "#38BDF8"
 
         all_vals = volumes + benchmark_target
-        min_val = max(0, min(all_vals) * 0.82)
-        max_val = max(all_vals) * 1.15
+        min_val = max(0, min(all_vals) * 0.70)
+        max_val = max(all_vals) * 1.25
 
         base_chart = alt.Chart(df_chart).encode(
             x=alt.X(
@@ -2197,6 +2297,16 @@ elif portal_mode == "🏋️ Gym Member / User View":
             )
         )
 
+        # 1. Shaded area under actual curve (makes volume trajectory instantly readable)
+        actual_area = base_chart.mark_area(
+            opacity=0.18,
+            color=main_color,
+            interpolate="monotone"
+        ).encode(
+            y=alt.Y("Actual Volume (kg):Q")
+        )
+
+        # 2. Benchmark dashed line (+5% weekly target)
         bench_line = base_chart.mark_line(
             strokeDash=[6, 6],
             strokeWidth=2.5,
@@ -2207,9 +2317,9 @@ elif portal_mode == "🏋️ Gym Member / User View":
         )
 
         bench_pts = base_chart.mark_circle(
-            size=65,
+            size=75,
             color=bench_color,
-            opacity=0.75
+            opacity=0.80
         ).encode(
             y=alt.Y("Target Benchmark (kg):Q"),
             tooltip=[
@@ -2218,14 +2328,27 @@ elif portal_mode == "🏋️ Gym Member / User View":
             ]
         )
 
+        bench_text = base_chart.mark_text(
+            align="center",
+            baseline="top",
+            dy=14,
+            fontSize=11,
+            fontWeight="bold",
+            color=bench_color
+        ).encode(
+            y=alt.Y("Target Benchmark (kg):Q"),
+            text="Target Label:N"
+        )
+
+        # 3. Actual volume curve (thick line + glowing points)
         actual_line = base_chart.mark_line(
-            strokeWidth=4,
+            strokeWidth=4.5,
             color=main_color,
             interpolate="monotone"
         ).encode(
             y=alt.Y(
                 "Actual Volume (kg):Q",
-                title="Volume Lifted (kg)",
+                title="Total Volume Lifted (kg) = Sets × Reps × Weight",
                 scale=alt.Scale(domain=[min_val, max_val]),
                 axis=alt.Axis(
                     grid=True,
@@ -2238,32 +2361,50 @@ elif portal_mode == "🏋️ Gym Member / User View":
             )
         )
 
+        actual_halo = base_chart.mark_circle(
+            size=300,
+            color=main_color,
+            opacity=0.20
+        ).encode(
+            y=alt.Y("Actual Volume (kg):Q")
+        )
+
         actual_pts = base_chart.mark_circle(
-            size=140,
+            size=180,
             color=main_color
         ).encode(
             y=alt.Y("Actual Volume (kg):Q"),
             tooltip=[
-                alt.Tooltip("Session:N", title="Session"),
-                alt.Tooltip("Actual Volume (kg):Q", title="Actual Volume", format=",.0f"),
-                alt.Tooltip("Target Benchmark (kg):Q", title="Target Benchmark", format=",.0f"),
-                alt.Tooltip("Growth Delta:N", title="Session-over-Session Delta")
+                alt.Tooltip("Session:N", title="Workout Session"),
+                alt.Tooltip("Actual Volume (kg):Q", title="Your Lifted Volume", format=",.0f"),
+                alt.Tooltip("Target Benchmark (kg):Q", title="Target Goal", format=",.0f"),
+                alt.Tooltip("Growth Delta:N", title="Session Delta"),
+                alt.Tooltip("Performance Status:N", title="Status vs Benchmark")
             ]
         )
 
         actual_text = base_chart.mark_text(
             align="center",
             baseline="bottom",
-            dy=-12,
+            dy=-15,
             fontSize=12,
             fontWeight="bold",
-            color=accent_color
+            color="#F8FAFC"
         ).encode(
             y=alt.Y("Actual Volume (kg):Q"),
-            text="Formatted Actual:N"
+            text="Data Label:N"
         )
 
-        prog_chart = alt.layer(bench_line, bench_pts, actual_line, actual_pts, actual_text).properties(
+        prog_chart = alt.layer(
+            actual_area,
+            bench_line,
+            bench_pts,
+            bench_text,
+            actual_line,
+            actual_halo,
+            actual_pts,
+            actual_text
+        ).properties(
             height=340
         ).configure_view(
             strokeOpacity=0
@@ -2271,17 +2412,29 @@ elif portal_mode == "🏋️ Gym Member / User View":
 
         st.altair_chart(prog_chart, use_container_width=True)
 
-        # Legend and visual cues
-        col_leg1, col_leg2, col_leg3 = st.columns([1.5, 1.8, 1])
-        with col_leg1:
-            if is_plateau:
-                st.markdown("🔴 **Your Volume:** `Stagnant / Plateau Stalling`")
-            else:
-                st.markdown("🟢 **Your Volume:** `Active Progressive Overload`")
-        with col_leg2:
-            st.markdown("🔵 **Target Guide (Dashed):** `Optimal +5% Hypertrophy Curve`")
-        with col_leg3:
-            st.markdown(f"🏆 **4-Session Net:** `{net_growth:+,.0f} kg`")
+        # 6. Concise "How to Read This Graph" Visual Card
+        st.markdown(f"""
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 10px; margin-bottom: 20px;">
+            <div style="background: rgba(15, 23, 42, 0.6); padding: 12px 16px; border-radius: 8px; border-left: 4px solid {'#EF4444' if is_plateau else '#10B981'};">
+                <strong style="color: #F8FAFC; font-size: 13px;">{'🔴 Plateau Stagnation' if is_plateau else '📈 Progressive Overload'}</strong>
+                <p style="color: #94A3B8; font-size: 12px; margin: 4px 0 0 0; line-height: 1.4;">
+                    {'Volume has stalled. Your neuromuscular system needs a deload.' if is_plateau else 'Green line is climbing! You are consistently lifting more weight or reps.'}
+                </p>
+            </div>
+            <div style="background: rgba(15, 23, 42, 0.6); padding: 12px 16px; border-radius: 8px; border-left: 4px solid #38BDF8;">
+                <strong style="color: #F8FAFC; font-size: 13px;">🎯 +5% Overload Benchmark (Dashed)</strong>
+                <p style="color: #94A3B8; font-size: 12px; margin: 4px 0 0 0; line-height: 1.4;">
+                    {'Currently below the recommended progression curve.' if is_plateau else 'You are above the science-based target for muscle hypertrophy.'}
+                </p>
+            </div>
+            <div style="background: rgba(15, 23, 42, 0.6); padding: 12px 16px; border-radius: 8px; border-left: 4px solid #8B5CF6;">
+                <strong style="color: #F8FAFC; font-size: 13px;">🏆 Net 4-Session Growth</strong>
+                <p style="color: #94A3B8; font-size: 12px; margin: 4px 0 0 0; line-height: 1.4;">
+                    Overall change: <span style="color: {'#FCA5A5' if is_plateau else '#6EE7B7'}; font-weight: bold;">{net_growth:+,.0f} kg ({net_growth_pct:+.1f}%)</span> across 4 sessions.
+                </p>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
         # 5. Live AI Coach Diagnosis & Actionable Prescription Card
         if is_plateau:
@@ -2349,29 +2502,7 @@ elif portal_mode == "🏋️ Gym Member / User View":
             </div>
             """, unsafe_allow_html=True)
 
-        # 6. Action Button to Commit Recalibration
-        if st.button("🔄 Commit Trajectory to Member Record & Recalibrate Engine", type="primary", use_container_width=True):
-            user_sessions = [{"total_volume_kg": v} for v in volumes]
-            analysis = plateau_detector.analyze_member_trajectory(active_tenant_id, default_mem_id, user_sessions)
-            evt = TenantEvent(
-                tenant_id=active_tenant_id,
-                role_context="member",
-                event_type="plateau_analysis",
-                operational_params={
-                    "member_id": default_mem_id,
-                    "avg_delta_kg": avg_delta,
-                    "is_plateau": is_plateau,
-                    "recommended_action": analysis["recommended_action"]
-                }
-            )
-            tige.update_genome_from_event(evt)
-            if is_plateau:
-                st.toast("⚠️ Plateau detected: Engine recalibrated with deload recommendation!", icon="🔄")
-            else:
-                st.toast("🎉 Progressive overload recorded! Engine updated.", icon="🚀")
-            st.success(f"✅ Analysis committed! AI Prescribed Recommendation: **{analysis['recommended_action']}**")
 
-        st.markdown("")
 
         # 7. Educational Primer Expander
         with st.expander("📖 **How FAM-FIOS AI Progress Tracking Works (Click to Learn)**", expanded=False):
