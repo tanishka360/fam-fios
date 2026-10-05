@@ -1932,28 +1932,36 @@ elif portal_mode == "🏋️ Gym Member / User View":
                     "sets_reps": "4 sets × 6-8 reps",
                     "rest": "90s rest",
                     "target": "Pectoralis Major, Anterior Deltoids",
-                    "cue": "Retract scapulae, plant feet firmly, explode on upward push with controlled 2s eccentric."
+                    "cue": "Retract scapulae, plant feet firmly, explode on upward push with controlled 2s eccentric.",
+                    "video_url": "https://www.youtube.com/watch?v=vcBig73ojpE",
+                    "video_title": "How to Bench Press with Perfect Form (Jeff Nippard)"
                 },
                 {
                     "name": "Incline Dumbbell Chest Press",
                     "sets_reps": "3 sets × 8-10 reps",
                     "rest": "75s rest",
                     "target": "Clavicular (Upper) Pectorals",
-                    "cue": "Set bench to 30°, maintain neutral wrist alignment, deep stretch at bottom."
+                    "cue": "Set bench to 30°, maintain neutral wrist alignment, deep stretch at bottom.",
+                    "video_url": "https://www.youtube.com/watch?v=8iPEnn-ltC8",
+                    "video_title": "Incline Dumbbell Press Technique (Jeff Nippard)"
                 },
                 {
                     "name": "Seated Overhead Dumbbell Shoulder Press",
                     "sets_reps": "3 sets × 10-12 reps",
                     "rest": "60s rest",
                     "target": "Anterior & Lateral Deltoids",
-                    "cue": "Brace core tightly, press weights up in slight arc without hyperextending lower spine."
+                    "cue": "Brace core tightly, press weights up in slight arc without hyperextending lower spine.",
+                    "video_url": "https://www.youtube.com/watch?v=qEwKCR5JCog",
+                    "video_title": "Dumbbell Shoulder Press Form (Jeff Nippard)"
                 },
                 {
                     "name": "Cable Tricep Rope Pushdowns",
                     "sets_reps": "3 sets × 12-15 reps",
                     "rest": "45s rest",
                     "target": "Triceps Brachii (Lateral & Long Head)",
-                    "cue": "Pin elbows to torso, spread the rope handles wide at contraction with 1s pause."
+                    "cue": "Pin elbows to torso, spread the rope handles wide at contraction with 1s pause.",
+                    "video_url": "https://www.youtube.com/watch?v=-xa-6cQaZKY",
+                    "video_title": "Tricep Rope Pushdown Execution (Scott Herman)"
                 }
             ],
             "nutrition": {
@@ -1978,28 +1986,36 @@ elif portal_mode == "🏋️ Gym Member / User View":
                     "sets_reps": "3 sets × 5 reps",
                     "rest": "120s rest",
                     "target": "Erector Spinae, Latissimus Dorsi, Glutes & Hamstrings",
-                    "cue": "Hip hinge setup, pull slack out of bar, drive the floor away through midfoot."
+                    "cue": "Hip hinge setup, pull slack out of bar, drive the floor away through midfoot.",
+                    "video_url": "https://www.youtube.com/watch?v=VL5Ab0T07e4",
+                    "video_title": "How to Deadlift with Perfect Form (Jeff Nippard)"
                 },
                 {
                     "name": "Wide-Grip Lat Pulldowns",
                     "sets_reps": "4 sets × 8-10 reps",
                     "rest": "75s rest",
                     "target": "Latissimus Dorsi & Teres Major",
-                    "cue": "Initiate pull by depressing scapulae; pull elbows towards back pockets."
+                    "cue": "Initiate pull by depressing scapulae; pull elbows towards back pockets.",
+                    "video_url": "https://www.youtube.com/watch?v=CAwf7n6Luuc",
+                    "video_title": "Lat Pulldown Form for Back Hypertrophy (Jeremy Ethier)"
                 },
                 {
                     "name": "Seated Cable Rows (Close Grip)",
                     "sets_reps": "3 sets × 10-12 reps",
                     "rest": "60s rest",
                     "target": "Rhomboids, Middle Trapezius & Lats",
-                    "cue": "Keep chest elevated, avoid excessive rocking, hold contraction for 1 second."
+                    "cue": "Keep chest elevated, avoid excessive rocking, hold contraction for 1 second.",
+                    "video_url": "https://www.youtube.com/watch?v=GZbfZ033f74",
+                    "video_title": "Seated Cable Row Technique (Scott Herman)"
                 },
                 {
                     "name": "Incline Dumbbell Bicep Curls",
                     "sets_reps": "3 sets × 12 reps",
                     "rest": "45s rest",
                     "target": "Biceps Brachii (Long Head)",
-                    "cue": "Full supination at peak contraction; do not let elbows drift forward."
+                    "cue": "Full supination at peak contraction; do not let elbows drift forward.",
+                    "video_url": "https://www.youtube.com/watch?v=soxrZlIl35U",
+                    "video_title": "Incline Dumbbell Curl Form (Buff Dudes)"
                 }
             ],
             "nutrition": {
@@ -2024,28 +2040,36 @@ elif portal_mode == "🏋️ Gym Member / User View":
                     "sets_reps": "4 sets × 6-8 reps",
                     "rest": "120s rest",
                     "target": "Quadriceps, Gluteus Maximus, Core Stabilizers",
-                    "cue": "Take deep belly breath into belt, knees track outward over second toes, hit depth."
+                    "cue": "Take deep belly breath into belt, knees track outward over second toes, hit depth.",
+                    "video_url": "https://www.youtube.com/watch?v=bEv6CCg2BC8",
+                    "video_title": "How to Squat with Proper Depth & Form (Squat University)"
                 },
                 {
                     "name": "Romanian Deadlifts (RDL)",
                     "sets_reps": "3 sets × 10 reps",
                     "rest": "90s rest",
                     "target": "Hamstrings & Gluteal Fold",
-                    "cue": "Soft knee flexion, push hips straight back until deep hamstring stretch is felt."
+                    "cue": "Soft knee flexion, push hips straight back until deep hamstring stretch is felt.",
+                    "video_url": "https://www.youtube.com/watch?v=JCXUYuzwNrM",
+                    "video_title": "Romanian Deadlift Masterclass (Jeremy Ethier)"
                 },
                 {
                     "name": "Leg Press / Walking Lunges",
                     "sets_reps": "3 sets × 12 reps per leg",
                     "rest": "60s rest",
                     "target": "Quadriceps & Glute Medius",
-                    "cue": "Maintain upright posture, knee aligned over ankle at bottom position."
+                    "cue": "Maintain upright posture, knee aligned over ankle at bottom position.",
+                    "video_url": "https://www.youtube.com/watch?v=IZxyjW7MPJQ",
+                    "video_title": "Leg Press Machine Setup & Execution (Jeff Nippard)"
                 },
                 {
                     "name": "Standing Calf Raises & Hanging Knee Raises",
                     "sets_reps": "4 sets × 15 reps",
                     "rest": "45s rest",
                     "target": "Gastrocnemius & Rectus Abdominis",
-                    "cue": "2-second pause at maximum stretch and 1-second flex at contraction."
+                    "cue": "2-second pause at maximum stretch and 1-second flex at contraction.",
+                    "video_url": "https://www.youtube.com/watch?v=-M4-G8p8fmc",
+                    "video_title": "Calf & Core Knee Raise Technique (Scott Herman)"
                 }
             ],
             "nutrition": {
@@ -2070,28 +2094,36 @@ elif portal_mode == "🏋️ Gym Member / User View":
                     "sets_reps": "1 session × 30 mins",
                     "rest": "Steady state",
                     "target": "Aerobic Capacity & Mitochondrial Health",
-                    "cue": "Keep heart rate steady at 115-130 BPM; conversational brisk walk."
+                    "cue": "Keep heart rate steady at 115-130 BPM; conversational brisk walk.",
+                    "video_url": "https://www.youtube.com/watch?v=0kO7L9e5V-I",
+                    "video_title": "Zone 2 Cardio Training Guide (Dr. Peter Attia)"
                 },
                 {
                     "name": "Thoracic Spine Foam Rolling & Extensions",
                     "sets_reps": "3 sets × 10 reps",
                     "rest": "30s rest",
                     "target": "Thoracic Mobility & Postural Alignment",
-                    "cue": "Do not hyperextend lumbar; breathe deeply through tight rib angles."
+                    "cue": "Do not hyperextend lumbar; breathe deeply through tight rib angles.",
+                    "video_url": "https://www.youtube.com/watch?v=q0wLp4L6Qis",
+                    "video_title": "Thoracic Spine Mobility Foam Rolling (Squat University)"
                 },
                 {
                     "name": "90/90 Hip Flow & Deep Glute Stretch",
                     "sets_reps": "3 sets × 60s per side",
                     "rest": "30s rest",
                     "target": "Hip Internal & External Rotators",
-                    "cue": "Sit tall, square shoulders to lead knee, breathe calmly into tight areas."
+                    "cue": "Sit tall, square shoulders to lead knee, breathe calmly into tight areas.",
+                    "video_url": "https://www.youtube.com/watch?v=33K5qXU9r4A",
+                    "video_title": "90/90 Hip Mobility Flow Guide (The Ready State)"
                 },
                 {
                     "name": "Banded Face Pulls",
                     "sets_reps": "3 sets × 15 reps",
                     "rest": "45s rest",
                     "target": "Rear Deltoids & Scapular Retractors",
-                    "cue": "Light band resistance; pull hands wide past ears to recruit external rotators."
+                    "cue": "Light band resistance; pull hands wide past ears to recruit external rotators.",
+                    "video_url": "https://www.youtube.com/watch?v=rep-qVOkqgk",
+                    "video_title": "How to Face Pull Correctly (ATHLEAN-X)"
                 }
             ],
             "nutrition": {
@@ -2116,28 +2148,36 @@ elif portal_mode == "🏋️ Gym Member / User View":
                     "sets_reps": "4 sets × 6-8 reps",
                     "rest": "90s rest",
                     "target": "Upper Clavicular Pectoral Head",
-                    "cue": "Bar lands 2 inches below clavicle; control descent before driving up."
+                    "cue": "Bar lands 2 inches below clavicle; control descent before driving up.",
+                    "video_url": "https://www.youtube.com/watch?v=SrqOu55lrYU",
+                    "video_title": "Incline Barbell Bench Press Technique (Jeff Nippard)"
                 },
                 {
                     "name": "T-Bar Rows / Chest Supported Rows",
                     "sets_reps": "4 sets × 8-10 reps",
                     "rest": "75s rest",
                     "target": "Mid Back, Trapezius & Lats",
-                    "cue": "Drive elbows straight back; keep chin tucked with flat lumbar spine."
+                    "cue": "Drive elbows straight back; keep chin tucked with flat lumbar spine.",
+                    "video_url": "https://www.youtube.com/watch?v=j3Igk5nyZE4",
+                    "video_title": "T-Bar Row Setup and Form (Scott Herman)"
                 },
                 {
                     "name": "Dumbbell Lateral Raises",
                     "sets_reps": "4 sets × 12-15 reps",
                     "rest": "45s rest",
                     "target": "Lateral Deltoids (Boulder Shoulders)",
-                    "cue": "Lead with elbows; lean torso 5° forward to place tension on side head."
+                    "cue": "Lead with elbows; lean torso 5° forward to place tension on side head.",
+                    "video_url": "https://www.youtube.com/watch?v=3VcKaXpzqRo",
+                    "video_title": "Lateral Raises for Boulder Shoulders (Jeff Nippard)"
                 },
                 {
                     "name": "Hammer Curls & Overhead Tricep Extension",
                     "sets_reps": "3 sets × 12 reps (Superset)",
                     "rest": "60s rest",
                     "target": "Brachialis & Triceps Long Head",
-                    "cue": "Strict tempo, zero hip swing; lock arms out smoothly at top."
+                    "cue": "Strict tempo, zero hip swing; lock arms out smoothly at top.",
+                    "video_url": "https://www.youtube.com/watch?v=zC3nLlEvin4",
+                    "video_title": "Hammer Curl & Tricep Arm Superset (Buff Dudes)"
                 }
             ],
             "nutrition": {
@@ -2162,28 +2202,36 @@ elif portal_mode == "🏋️ Gym Member / User View":
                     "sets_reps": "4 sets × 8 reps",
                     "rest": "90s rest",
                     "target": "Glutes, Hamstrings, Quadriceps & Traps",
-                    "cue": "Neutral spine, lock out glutes hard at the top without backward lean."
+                    "cue": "Neutral spine, lock out glutes hard at the top without backward lean.",
+                    "video_url": "https://www.youtube.com/watch?v=lmHYE10Y-G8",
+                    "video_title": "How to Trap Bar Deadlift (Alan Thrall)"
                 },
                 {
                     "name": "Bulgarian Split Squats (Dumbbell)",
                     "sets_reps": "3 sets × 10 reps per leg",
                     "rest": "60s rest",
                     "target": "Quadriceps & Glute Medius",
-                    "cue": "Rear foot on bench laces-down; drive through front heel."
+                    "cue": "Rear foot on bench laces-down; drive through front heel.",
+                    "video_url": "https://www.youtube.com/watch?v=2C-uNgKwPLE",
+                    "video_title": "Bulgarian Split Squat Form Without Pain (Squat University)"
                 },
                 {
                     "name": "Kettlebell Farmer's Carries",
                     "sets_reps": "4 sets × 40 meters",
                     "rest": "60s rest",
                     "target": "Grip Strength, Forearms & Core Bracing",
-                    "cue": "Pack shoulders down, tall posture, short steady steps."
+                    "cue": "Pack shoulders down, tall posture, short steady steps.",
+                    "video_url": "https://www.youtube.com/watch?v=rt17lmnaLSM",
+                    "video_title": "Farmer's Walk & Carry Masterclass (Scott Herman)"
                 },
                 {
                     "name": "Cable Woodchoppers & Plank Hold",
                     "sets_reps": "3 sets × 12 reps / side + 45s plank",
                     "rest": "45s rest",
                     "target": "Obliques & Transverse Abdominis",
-                    "cue": "Rotate from thoracic spine, keep pelvis locked forward."
+                    "cue": "Rotate from thoracic spine, keep pelvis locked forward.",
+                    "video_url": "https://www.youtube.com/watch?v=pAplQXk3dkU",
+                    "video_title": "Cable Woodchoppers for Oblique Power (ATHLEAN-X)"
                 }
             ],
             "nutrition": {
@@ -2208,21 +2256,27 @@ elif portal_mode == "🏋️ Gym Member / User View":
                     "sets_reps": "20-30 mins outdoor walk",
                     "rest": "Casual pace",
                     "target": "Mental De-stress & Lymphatic Circulation",
-                    "cue": "Enjoy sunlight, breathe naturally, no heart rate spikes."
+                    "cue": "Enjoy sunlight, breathe naturally, no heart rate spikes.",
+                    "video_url": "https://www.youtube.com/watch?v=b_r7F9L3eP0",
+                    "video_title": "Science of Walking for Health & Recovery (Huberman Lab)"
                 },
                 {
                     "name": "Full Body Myofascial Foam Rolling",
                     "sets_reps": "10-15 mins full body",
                     "rest": "Relaxed",
                     "target": "Calves, Quads, IT Band, Lats",
-                    "cue": "Spend 30-45 seconds on trigger points, breathe through discomfort."
+                    "cue": "Spend 30-45 seconds on trigger points, breathe through discomfort.",
+                    "video_url": "https://www.youtube.com/watch?v=o04_72b3X5o",
+                    "video_title": "Full Body Foam Rolling Routine (Bob & Brad)"
                 },
                 {
                     "name": "Diaphragmatic Box Breathing",
                     "sets_reps": "5 mins (4s in, 4s hold, 4s out, 4s hold)",
                     "rest": "Meditative",
                     "target": "Parasympathetic Nervous System Activation",
-                    "cue": "Inhale through nose expanding belly, slow relaxed exhalations."
+                    "cue": "Inhale through nose expanding belly, slow relaxed exhalations.",
+                    "video_url": "https://www.youtube.com/watch?v=tEmt1Znux58",
+                    "video_title": "Navy SEAL Box Breathing Exercise (Mark Divine)"
                 }
             ],
             "nutrition": {
@@ -2315,7 +2369,9 @@ elif portal_mode == "🏋️ Gym Member / User View":
                 st.markdown(f"**{i+1}. {ex['name']}**")
                 st.caption(f"🎯 {ex['sets_reps']}")
                 st.caption(f"⏱️ {ex['rest']}")
-        st.info("💡 **Ready to train?** Open **Tab 4 (🥗 AI Workout & Meal Guide)** to check off exercises as you complete them, or record your lifts in **Tab 2 (📝 Record Workout Log)**!")
+                if "video_url" in ex:
+                    st.markdown(f"[▶️ **Form Tutorial**]({ex['video_url']})", help=f"Watch tutorial for {ex['name']}")
+        st.info("💡 **Ready to train?** Open **Tab 4 (🥗 AI Workout & Meal Guide)** to check off exercises, watch embedded video tutorials, or record your lifts in **Tab 2 (📝 Record Workout Log)**!")
 
     st.markdown("---")
 
@@ -2929,11 +2985,19 @@ elif portal_mode == "🏋️ Gym Member / User View":
                 if is_done:
                     completed_count += 1
                 st.markdown(f"""
-                <div style="background: rgba(15, 23, 42, 0.45); border-left: 3px solid #38BDF8; border-radius: 6px; padding: 8px 12px; margin-top: -6px; margin-bottom: 12px;">
+                <div style="background: rgba(15, 23, 42, 0.45); border-left: 3px solid #38BDF8; border-radius: 6px; padding: 10px 14px; margin-top: -6px; margin-bottom: 8px;">
                     <div style="font-size: 0.84rem; color: #94A3B8;">🎯 <b>Target:</b> {ex['target']} &nbsp;|&nbsp; ⏱️ <b>Rest:</b> {ex['rest']}</div>
-                    <div style="font-size: 0.82rem; color: #CBD5E1; margin-top: 3px;">💡 <b>Form Cue:</b> <i>{ex['cue']}</i></div>
+                    <div style="font-size: 0.82rem; color: #CBD5E1; margin-top: 4px;">💡 <b>Form Cue:</b> <i>{ex['cue']}</i></div>
+                    <div style="margin-top: 8px;">
+                        <a href="{ex.get('video_url', 'https://youtube.com')}" target="_blank" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(239, 68, 68, 0.15); color: #FCA5A5; border: 1px solid rgba(239, 68, 68, 0.35); padding: 4px 10px; border-radius: 6px; text-decoration: none; font-size: 0.80rem; font-weight: 600;">
+                            <span style="color: #EF4444; font-size: 0.95rem;">▶️</span> Watch YouTube Form Tutorial: <b>{ex.get('video_title', 'Video Guide')}</b> ↗
+                        </a>
+                    </div>
                 </div>
                 """, unsafe_allow_html=True)
+                if ex.get("video_url"):
+                    with st.expander(f"📺 Watch Form Video: {ex['name']}", expanded=False):
+                        st.video(ex["video_url"])
 
             total_ex = len(current_routine["exercises"])
             pct_done = completed_count / total_ex if total_ex > 0 else 0
