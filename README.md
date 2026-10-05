@@ -11,6 +11,12 @@
 
 **FAM-FIOS** is an autonomous, privacy-preserving, AI-driven multi-tenant operating system designed for fitness facilities, franchise networks, and enterprise gym chains. Developed based on Invention Disclosure **24BIT0370-24BIT0390-IDF-01** (Vellore Institute of Technology, VIT SCORE), the platform coordinates cryptographic tenant isolation, preemptive capacity scaling, federated machine learning, Amazon S3 cloud checkpointing, AWS SNS zero-password OTP authentication, and multi-stage payment enrollment.
 
+### 📚 Publications, Presentations & Guides
+- 📄 **Academic Research Paper & Patent Specification**: [`docs/RESEARCH_PAPER.md`](./docs/RESEARCH_PAPER.md) — Complete IEEE/ACM format paper covering theoretical formulations, differential privacy proofs ($\epsilon=1.5$), and empirical evaluation.
+- 📊 **Executive Pitch Deck**: [`docs/PITCH_DECK.md`](./docs/PITCH_DECK.md) — 12-slide executive presentation for investors, academic juries, and gym franchise owners.
+- 🎬 **5-Minute Live Demo Script**: [`docs/DEMO_SCRIPT.md`](./docs/DEMO_SCRIPT.md) — Master video recording guide with timestamps, spoken dialogue cues, and technical moat demonstrations.
+- ☁️ **AWS Cloud Deployment Guide**: [`AWS_DEPLOYMENT_GUIDE.md`](./AWS_DEPLOYMENT_GUIDE.md) — Zero-local-Docker deployment walkthrough for AWS App Runner and Amazon ECS Fargate.
+
 ---
 
 ## 🏛️ System Architecture
