@@ -5,11 +5,11 @@
     "tenant_2"
   ],
   "global_weights": [
-    0.2535,
-    0.4541,
-    0.2998,
-    0.4988,
-    0.1517
+    0.253,
+    0.4393,
+    0.2942,
+    0.4973,
+    0.1545
   ],
   "average_loss": 0.025,
   "privacy_guarantee": "Epsilon=1.5, Zero Raw Data Shared"

@@ -2423,11 +2423,16 @@ elif portal_mode == "🏋️ Gym Member / User View":
                 st.success("🟢 Ideal workout window: Plenty of equipment available!")
 
     with member_tabs[1]:
-        st.markdown("### 📝 **Log Today's Exercises**")
-        st.info("💡 Enter your sets, reps, and weight lifted. Total workout volume is calculated automatically and feeds directly into your **Progress & Plateau Tracker (Tab 3)**.")
+        st.markdown("### 📝 **Log Workout Exercises (Dynamic Week-Wise)**")
+        st.info("💡 Log your exercises week-by-week. Total volume is calculated dynamically and syncs directly into your **Progress & Plateau Tracker (Tab 3)**.")
 
-        if "member_logged_exercises" not in st.session_state:
-            st.session_state.member_logged_exercises = []
+        if "member_weekly_exercise_logs" not in st.session_state:
+            st.session_state.member_weekly_exercise_logs = {
+                "Week 1": [],
+                "Week 2": [],
+                "Week 3": [],
+                "Week 4": []
+            }
 
         all_exercise_options = [
             "Barbell Bench Press (Flat)",
@@ -2452,6 +2457,19 @@ elif portal_mode == "🏋️ Gym Member / User View":
             "Cable Woodchoppers & Plank Hold"
         ]
 
+        c_wk_pick, c_wk_status = st.columns([2, 2])
+        with c_wk_pick:
+            sel_target_week = st.selectbox(
+                "📅 **Select Training Week to Log:**",
+                ["Week 4 (Current Week / Today)", "Week 3", "Week 2", "Week 1 (Baseline)"],
+                index=0,
+                key="sel_log_week_active"
+            )
+            wk_key = "Week 4" if "Week 4" in sel_target_week else ("Week 1" if "Week 1" in sel_target_week else ("Week 2" if "Week 2" in sel_target_week else "Week 3"))
+        with c_wk_status:
+            w_total_curr = sum(e["Volume"] for e in st.session_state.member_weekly_exercise_logs.get(wk_key, []))
+            st.markdown(f"**Target Period:** `{wk_key}` &nbsp;|&nbsp; Cumulative Logged: **`{w_total_curr:,.0f} kg`**")
+
         with st.form("member_log_exercise"):
             c_ex1, c_ex2 = st.columns(2)
             with c_ex1:
@@ -2459,23 +2477,24 @@ elif portal_mode == "🏋️ Gym Member / User View":
                 num_sets = st.number_input("Number of Sets", min_value=1, max_value=15, value=4)
             with c_ex2:
                 num_reps = st.number_input("Reps per Set", min_value=1, max_value=50, value=8)
-                weight_kg = st.number_input("Weight Used (kg)", min_value=0.0, max_value=500.0, value=80.0, step=2.5)
+                weight_kg = st.number_input("Weight Used (kg)", min_value=0.0, max_value=500.0, value=65.0, step=2.5)
 
             session_volume = num_sets * num_reps * weight_kg
             st.markdown(f"**Calculated Volume for this exercise:** `{session_volume:,.1f} kg lifted` ({num_sets} sets × {num_reps} reps × {weight_kg:g} kg)")
 
-            save_log = st.form_submit_button("➕ Add Exercise to Today's Workout Log", use_container_width=True, type="primary")
+            save_log = st.form_submit_button(f"➕ Add Exercise to {wk_key} Log", use_container_width=True, type="primary")
             if save_log:
                 evt = TenantEvent(
                     tenant_id=active_tenant_id,
                     role_context="member",
                     event_type="workout_logged",
-                    operational_params={"exercise": sel_exercise, "volume_kg": session_volume}
+                    operational_params={"exercise": sel_exercise, "volume_kg": session_volume, "week": wk_key}
                 )
                 tige.update_genome_from_event(evt)
 
-                st.session_state.member_logged_exercises.append({
+                st.session_state.member_weekly_exercise_logs[wk_key].append({
                     "Time": datetime.now().strftime("%I:%M %p"),
+                    "Week": wk_key,
                     "Exercise": sel_exercise,
                     "Sets": num_sets,
                     "Reps": num_reps,
@@ -2483,37 +2502,73 @@ elif portal_mode == "🏋️ Gym Member / User View":
                     "Volume": session_volume
                 })
 
-                total_logged_today = sum(e["Volume"] for e in st.session_state.member_logged_exercises)
+                w1_t = sum(e["Volume"] for e in st.session_state.member_weekly_exercise_logs["Week 1"])
+                w2_t = sum(e["Volume"] for e in st.session_state.member_weekly_exercise_logs["Week 2"])
+                w3_t = sum(e["Volume"] for e in st.session_state.member_weekly_exercise_logs["Week 3"])
+                w4_t = sum(e["Volume"] for e in st.session_state.member_weekly_exercise_logs["Week 4"])
+
+                # Dynamic week-wise synchronization:
+                if w4_t > 0 and w1_t == 0 and w2_t == 0 and w3_t == 0:
+                    # Dynamically calibrate prior weeks relative to actual logged strength!
+                    st.session_state.inp_prog_s1 = int(round(w4_t * 0.90 / 25) * 25)
+                    st.session_state.inp_prog_s2 = int(round(w4_t * 0.95 / 25) * 25)
+                    st.session_state.inp_prog_s3 = int(round(w4_t * 0.98 / 25) * 25)
+                    st.session_state.inp_prog_s4 = int(w4_t)
+                else:
+                    if w1_t > 0: st.session_state.inp_prog_s1 = int(w1_t)
+                    if w2_t > 0: st.session_state.inp_prog_s2 = int(w2_t)
+                    if w3_t > 0: st.session_state.inp_prog_s3 = int(w3_t)
+                    if w4_t > 0: st.session_state.inp_prog_s4 = int(w4_t)
+
+                st.session_state.saved_prog_volumes = [
+                    int(st.session_state.inp_prog_s1),
+                    int(st.session_state.inp_prog_s2),
+                    int(st.session_state.inp_prog_s3),
+                    int(st.session_state.inp_prog_s4)
+                ]
+                st.session_state.last_saved_prog_time = datetime.now().strftime("%I:%M:%S %p")
                 
-                # Auto-sync into Session 4 (Week 4 Latest) in Tab 3!
-                st.session_state.inp_prog_s4 = int(total_logged_today)
-                if "saved_prog_volumes" in st.session_state and len(st.session_state.saved_prog_volumes) == 4:
-                    st.session_state.saved_prog_volumes[3] = int(total_logged_today)
-                    st.session_state.last_saved_prog_time = datetime.now().strftime("%I:%M:%S %p")
-                
-                st.toast(f"✅ Added {sel_exercise} (+{session_volume:,.0f} kg). Total Today: {total_logged_today:,.0f} kg!", icon="🏋️")
+                new_wk_total = sum(e["Volume"] for e in st.session_state.member_weekly_exercise_logs[wk_key])
+                st.toast(f"✅ Added {sel_exercise} (+{session_volume:,.0f} kg). {wk_key} Total: {new_wk_total:,.0f} kg!", icon="🏋️")
                 st.rerun()
 
-        # Display Live Logged Workout History for Today
-        if st.session_state.member_logged_exercises:
+        # Display Live Week-Wise Logged Breakdown
+        all_logs = []
+        for wk in ["Week 1", "Week 2", "Week 3", "Week 4"]:
+            all_logs.extend(st.session_state.member_weekly_exercise_logs.get(wk, []))
+
+        if all_logs:
             st.markdown("---")
-            total_today = sum(e["Volume"] for e in st.session_state.member_logged_exercises)
-            
-            c_tot_header, c_tot_clear = st.columns([3, 1])
-            with c_tot_header:
-                st.markdown(f"#### 🏆 **Today's Cumulative Workout Volume: `{total_today:,.0f} kg`**")
-                st.caption(f"⚡ **Live Synced:** Automatically updated **Session 4 (Week 4 Latest)** in Tab 3 to `{total_today:,.0f} kg`!")
-            with c_tot_clear:
-                if st.button("🗑️ Reset Today's Log", use_container_width=True):
-                    st.session_state.member_logged_exercises = []
+            c_hist_title, c_hist_clear = st.columns([3, 1])
+            with c_hist_title:
+                st.markdown("#### 📊 **Dynamic Week-Wise Workout Summary**")
+                
+                cw1, cw2, cw3, cw4 = st.columns(4)
+                t1 = sum(e["Volume"] for e in st.session_state.member_weekly_exercise_logs["Week 1"])
+                t2 = sum(e["Volume"] for e in st.session_state.member_weekly_exercise_logs["Week 2"])
+                t3 = sum(e["Volume"] for e in st.session_state.member_weekly_exercise_logs["Week 3"])
+                t4 = sum(e["Volume"] for e in st.session_state.member_weekly_exercise_logs["Week 4"])
+                with cw1: st.metric("Week 1 Total", f"{t1:,.0f} kg" if t1 > 0 else f"{st.session_state.inp_prog_s1:,.0f} kg (Est)")
+                with cw2: st.metric("Week 2 Total", f"{t2:,.0f} kg" if t2 > 0 else f"{st.session_state.inp_prog_s2:,.0f} kg (Est)")
+                with cw3: st.metric("Week 3 Total", f"{t3:,.0f} kg" if t3 > 0 else f"{st.session_state.inp_prog_s3:,.0f} kg (Est)")
+                with cw4: st.metric("Week 4 Total", f"{t4:,.0f} kg" if t4 > 0 else f"{st.session_state.inp_prog_s4:,.0f} kg (Live)")
+
+            with c_hist_clear:
+                if st.button("🗑️ Clear All Logs", use_container_width=True):
+                    st.session_state.member_weekly_exercise_logs = {"Week 1": [], "Week 2": [], "Week 3": [], "Week 4": []}
+                    st.session_state.inp_prog_s1 = 1400
+                    st.session_state.inp_prog_s2 = 1475
+                    st.session_state.inp_prog_s3 = 1525
+                    st.session_state.inp_prog_s4 = 1560
+                    st.session_state.saved_prog_volumes = [1400, 1475, 1525, 1560]
                     st.rerun()
 
-            df_logged = pd.DataFrame(st.session_state.member_logged_exercises)
-            df_display = df_logged.copy()
+            df_all = pd.DataFrame(all_logs)
+            df_display = df_all.copy()
             df_display["Volume"] = df_display["Volume"].apply(lambda x: f"{x:,.0f} kg")
             st.dataframe(df_display, use_container_width=True, hide_index=True)
 
-            st.success(f"👉 **Ready to see your progress graph?** Open **Tab 3 (📈 My Progress & Plateau Detector)** to see this `{total_today:,.0f} kg` volume plotted on your overload trajectory!")
+            st.success("👉 **Ready to see your progress graph?** Open **Tab 3 (📈 My Progress & Plateau Detector)** to see your dynamic week-wise volume plotted on your overload trajectory!")
 
     with member_tabs[2]:
         st.markdown("### 📈 **Progressive Overload & Muscle Plateau Detector**")
@@ -2523,19 +2578,19 @@ elif portal_mode == "🏋️ Gym Member / User View":
             "and automatically prescribe deload adjustments before physical stagnation occurs."
         )
 
-        # 1. 1-Click Interactive Presets / Scenarios
-        st.markdown("##### ⚡ **Interactive Scenarios (Select to Load Into Inputs):**")
+        # 1. 1-Click Interactive Presets / Scenarios (Calibrated Dynamically to Current Baseline)
+        st.markdown("##### ⚡ **Interactive Scenarios (Calibrated Dynamically to Your Baseline):**")
         col_pre1, col_pre2, col_pre3, col_pre4 = st.columns(4)
         
-        # Initialize default session values if not present
+        # Initialize default session values dynamically calibrated to real-world workout volume
         if "inp_prog_s1" not in st.session_state:
-            st.session_state.inp_prog_s1 = 3000
+            st.session_state.inp_prog_s1 = 1400
         if "inp_prog_s2" not in st.session_state:
-            st.session_state.inp_prog_s2 = 3150
+            st.session_state.inp_prog_s2 = 1475
         if "inp_prog_s3" not in st.session_state:
-            st.session_state.inp_prog_s3 = 3310
+            st.session_state.inp_prog_s3 = 1525
         if "inp_prog_s4" not in st.session_state:
-            st.session_state.inp_prog_s4 = 3480
+            st.session_state.inp_prog_s4 = 1560
 
         # Initialize SAVED workout volumes (The graph ONLY changes when this is updated via Save)
         if "saved_prog_volumes" not in st.session_state:
@@ -2548,31 +2603,34 @@ elif portal_mode == "🏋️ Gym Member / User View":
         if "last_saved_prog_time" not in st.session_state:
             st.session_state.last_saved_prog_time = datetime.now().strftime("%I:%M %p")
 
+        # Dynamically determine the member's current baseline volume
+        dyn_base = max(int(st.session_state.inp_prog_s1), 500)
+
         with col_pre1:
-            if st.button("🚀 Progressive Overload", use_container_width=True, help="Simulate steady science-backed +5% weekly growth from 3,000 kg baseline"):
-                st.session_state.inp_prog_s1 = 3000
-                st.session_state.inp_prog_s2 = 3150
-                st.session_state.inp_prog_s3 = 3310
-                st.session_state.inp_prog_s4 = 3480
-                st.toast("Progressive Overload loaded (+5% per week from 3,000 kg)! Click '💾 Save & Update My Workout Progress' to update graph.", icon="📝")
+            if st.button("🚀 Progressive Overload", use_container_width=True, help=f"Simulate steady science-backed +5% weekly growth from your {dyn_base:,} kg baseline"):
+                st.session_state.inp_prog_s1 = dyn_base
+                st.session_state.inp_prog_s2 = int(round(dyn_base * 1.05 / 25) * 25)
+                st.session_state.inp_prog_s3 = int(round(dyn_base * 1.10 / 25) * 25)
+                st.session_state.inp_prog_s4 = int(round(dyn_base * 1.16 / 25) * 25)
+                st.toast(f"Dynamic Progressive Overload (+5% week-wise from {dyn_base:,} kg) loaded! Click '💾 Save & Update My Workout Progress'.", icon="📝")
                 st.rerun()
 
         with col_pre2:
-            if st.button("⚠️ Plateau Stagnation", use_container_width=True, help="Simulate complete training plateau (0% gain) from same 3,000 kg baseline"):
-                st.session_state.inp_prog_s1 = 3000
-                st.session_state.inp_prog_s2 = 3000
-                st.session_state.inp_prog_s3 = 3000
-                st.session_state.inp_prog_s4 = 3000
-                st.toast("Plateau scenario loaded (3,000 kg flatline across all sessions)! Click '💾 Save & Update My Workout Progress' to update graph.", icon="📝")
+            if st.button("⚠️ Plateau Stagnation", use_container_width=True, help=f"Simulate complete training plateau (0% gain) at your {dyn_base:,} kg baseline"):
+                st.session_state.inp_prog_s1 = dyn_base
+                st.session_state.inp_prog_s2 = dyn_base
+                st.session_state.inp_prog_s3 = dyn_base
+                st.session_state.inp_prog_s4 = dyn_base
+                st.toast(f"Dynamic Plateau scenario ({dyn_base:,} kg flatline across all 4 weeks) loaded! Click '💾 Save & Update My Workout Progress'.", icon="📝")
                 st.rerun()
 
         with col_pre3:
-            if st.button("💥 Aggressive PR Surge", use_container_width=True, help="Simulate rapid compounding PR gains (+13% per week) from same 3,000 kg baseline"):
-                st.session_state.inp_prog_s1 = 3000
-                st.session_state.inp_prog_s2 = 3400
-                st.session_state.inp_prog_s3 = 3850
-                st.session_state.inp_prog_s4 = 4350
-                st.toast("Aggressive PR Surge loaded (+400-500 kg weekly leaps from 3,000 kg)! Click '💾 Save & Update My Workout Progress' to update graph.", icon="📝")
+            if st.button("💥 Aggressive PR Surge", use_container_width=True, help=f"Simulate rapid compounding PR gains (+13-15% per week) from your {dyn_base:,} kg baseline"):
+                st.session_state.inp_prog_s1 = dyn_base
+                st.session_state.inp_prog_s2 = int(round(dyn_base * 1.13 / 25) * 25)
+                st.session_state.inp_prog_s3 = int(round(dyn_base * 1.28 / 25) * 25)
+                st.session_state.inp_prog_s4 = int(round(dyn_base * 1.45 / 25) * 25)
+                st.toast(f"Dynamic PR Surge (+13-15% weekly leaps from {dyn_base:,} kg) loaded! Click '💾 Save & Update My Workout Progress'.", icon="📝")
                 st.rerun()
 
         with col_pre4:
@@ -2593,27 +2651,36 @@ elif portal_mode == "🏋️ Gym Member / User View":
         with c_v1:
             s1_vol = st.number_input("Session 1 (Week 1 Baseline)", min_value=0, max_value=25000, step=25, key="inp_prog_s1", help="Sets × Reps × Weight (kg)")
             st.caption("🏁 **Week 1 Baseline**")
+            w1_log = sum(e["Volume"] for e in st.session_state.get("member_weekly_exercise_logs", {}).get("Week 1", []))
+            if w1_log > 0:
+                st.caption(f"⚡ *Live synced: {w1_log:,.0f} kg*")
         with c_v2:
             s2_vol = st.number_input("Session 2 (Week 2)", min_value=0, max_value=25000, step=25, key="inp_prog_s2", help="Sets × Reps × Weight (kg)")
             d2_input = s2_vol - s1_vol
             p2_input = (d2_input / max(s1_vol, 1)) * 100
             d2_icon = "🟢" if d2_input > 0 else ("🔴" if d2_input < 0 else "⚪")
             st.caption(f"{d2_icon} **Δ vs W1:** `{d2_input:+,.0f} kg ({p2_input:+.1f}%)`")
+            w2_log = sum(e["Volume"] for e in st.session_state.get("member_weekly_exercise_logs", {}).get("Week 2", []))
+            if w2_log > 0:
+                st.caption(f"⚡ *Live synced: {w2_log:,.0f} kg*")
         with c_v3:
             s3_vol = st.number_input("Session 3 (Week 3)", min_value=0, max_value=25000, step=25, key="inp_prog_s3", help="Sets × Reps × Weight (kg)")
             d3_input = s3_vol - s2_vol
             p3_input = (d3_input / max(s2_vol, 1)) * 100
             d3_icon = "🟢" if d3_input > 0 else ("🔴" if d3_input < 0 else "⚪")
             st.caption(f"{d3_icon} **Δ vs W2:** `{d3_input:+,.0f} kg ({p3_input:+.1f}%)`")
+            w3_log = sum(e["Volume"] for e in st.session_state.get("member_weekly_exercise_logs", {}).get("Week 3", []))
+            if w3_log > 0:
+                st.caption(f"⚡ *Live synced: {w3_log:,.0f} kg*")
         with c_v4:
             s4_vol = st.number_input("Session 4 (Week 4 Latest)", min_value=0, max_value=25000, step=25, key="inp_prog_s4", help="Sets × Reps × Weight (kg)")
             d4_input = s4_vol - s3_vol
             p4_input = (d4_input / max(s3_vol, 1)) * 100
             d4_icon = "🟢" if d4_input > 0 else ("🔴" if d4_input < 0 else "⚪")
             st.caption(f"{d4_icon} **Δ vs W3:** `{d4_input:+,.0f} kg ({p4_input:+.1f}%)`")
-            if st.session_state.get("member_logged_exercises"):
-                tot_log = sum(e["Volume"] for e in st.session_state.member_logged_exercises)
-                st.caption(f"⚡ *Live synced from Tab 2 ({tot_log:,.0f} kg)*")
+            w4_log = sum(e["Volume"] for e in st.session_state.get("member_weekly_exercise_logs", {}).get("Week 4", []))
+            if w4_log > 0:
+                st.caption(f"⚡ *Live synced from Tab 2 ({w4_log:,.0f} kg)*")
 
         # Check for unsaved changes between input boxes and saved progress
         current_inputs = [int(s1_vol), int(s2_vol), int(s3_vol), int(s4_vol)]
