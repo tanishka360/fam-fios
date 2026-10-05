@@ -2424,21 +2424,47 @@ elif portal_mode == "🏋️ Gym Member / User View":
 
     with member_tabs[1]:
         st.markdown("### 📝 **Log Today's Exercises**")
-        st.info("💡 Enter your weight and reps. Total workout volume is calculated automatically.")
+        st.info("💡 Enter your sets, reps, and weight lifted. Total workout volume is calculated automatically and feeds directly into your **Progress & Plateau Tracker (Tab 3)**.")
+
+        if "member_logged_exercises" not in st.session_state:
+            st.session_state.member_logged_exercises = []
+
+        all_exercise_options = [
+            "Barbell Bench Press (Flat)",
+            "Incline Dumbbell Chest Press",
+            "Seated Overhead Dumbbell Shoulder Press",
+            "Cable Tricep Rope Pushdowns",
+            "Conventional Barbell Deadlifts",
+            "Wide-Grip Lat Pulldowns",
+            "Seated Cable Rows (Close Grip)",
+            "Incline Dumbbell Bicep Curls",
+            "Barbell Back Squats",
+            "Romanian Deadlifts (RDL)",
+            "Leg Press / Walking Lunges",
+            "Standing Calf Raises & Hanging Knee Raises",
+            "Incline Barbell Bench Press",
+            "T-Bar Rows / Chest Supported Rows",
+            "Dumbbell Lateral Raises",
+            "Hammer Curls & Overhead Triceps",
+            "Trap Bar Deadlifts / Barbell Hip Thrusts",
+            "Bulgarian Split Squats (Dumbbell)",
+            "Kettlebell Farmer's Carries",
+            "Cable Woodchoppers & Plank Hold"
+        ]
 
         with st.form("member_log_exercise"):
             c_ex1, c_ex2 = st.columns(2)
             with c_ex1:
-                sel_exercise = st.selectbox("Select Exercise", ["Barbell Bench Press", "Barbell Back Squat", "Conventional Deadlift", "Overhead Military Press", "Pull-Ups", "Dumbbell Incline Press"])
-                num_sets = st.number_input("Number of Sets", min_value=1, max_value=10, value=4)
+                sel_exercise = st.selectbox("Select Exercise", all_exercise_options)
+                num_sets = st.number_input("Number of Sets", min_value=1, max_value=15, value=4)
             with c_ex2:
-                num_reps = st.number_input("Reps per Set", min_value=1, max_value=30, value=8)
-                weight_kg = st.number_input("Weight Used (kg)", min_value=0.0, max_value=400.0, value=80.0, step=2.5)
+                num_reps = st.number_input("Reps per Set", min_value=1, max_value=50, value=8)
+                weight_kg = st.number_input("Weight Used (kg)", min_value=0.0, max_value=500.0, value=80.0, step=2.5)
 
             session_volume = num_sets * num_reps * weight_kg
-            st.markdown(f"**Calculated Volume for this exercise:** `{session_volume:,.1f} kg lifted`")
+            st.markdown(f"**Calculated Volume for this exercise:** `{session_volume:,.1f} kg lifted` ({num_sets} sets × {num_reps} reps × {weight_kg:g} kg)")
 
-            save_log = st.form_submit_button("Save Exercise to My History")
+            save_log = st.form_submit_button("➕ Add Exercise to Today's Workout Log", use_container_width=True, type="primary")
             if save_log:
                 evt = TenantEvent(
                     tenant_id=active_tenant_id,
@@ -2447,7 +2473,47 @@ elif portal_mode == "🏋️ Gym Member / User View":
                     operational_params={"exercise": sel_exercise, "volume_kg": session_volume}
                 )
                 tige.update_genome_from_event(evt)
-                st.success(f"🎉 Logged: {sel_exercise} — Total Volume: {session_volume:,.1f} kg!")
+
+                st.session_state.member_logged_exercises.append({
+                    "Time": datetime.now().strftime("%I:%M %p"),
+                    "Exercise": sel_exercise,
+                    "Sets": num_sets,
+                    "Reps": num_reps,
+                    "Weight": f"{weight_kg:g} kg",
+                    "Volume": session_volume
+                })
+
+                total_logged_today = sum(e["Volume"] for e in st.session_state.member_logged_exercises)
+                
+                # Auto-sync into Session 4 (Week 4 Latest) in Tab 3!
+                st.session_state.inp_prog_s4 = int(total_logged_today)
+                if "saved_prog_volumes" in st.session_state and len(st.session_state.saved_prog_volumes) == 4:
+                    st.session_state.saved_prog_volumes[3] = int(total_logged_today)
+                    st.session_state.last_saved_prog_time = datetime.now().strftime("%I:%M:%S %p")
+                
+                st.toast(f"✅ Added {sel_exercise} (+{session_volume:,.0f} kg). Total Today: {total_logged_today:,.0f} kg!", icon="🏋️")
+                st.rerun()
+
+        # Display Live Logged Workout History for Today
+        if st.session_state.member_logged_exercises:
+            st.markdown("---")
+            total_today = sum(e["Volume"] for e in st.session_state.member_logged_exercises)
+            
+            c_tot_header, c_tot_clear = st.columns([3, 1])
+            with c_tot_header:
+                st.markdown(f"#### 🏆 **Today's Cumulative Workout Volume: `{total_today:,.0f} kg`**")
+                st.caption(f"⚡ **Live Synced:** Automatically updated **Session 4 (Week 4 Latest)** in Tab 3 to `{total_today:,.0f} kg`!")
+            with c_tot_clear:
+                if st.button("🗑️ Reset Today's Log", use_container_width=True):
+                    st.session_state.member_logged_exercises = []
+                    st.rerun()
+
+            df_logged = pd.DataFrame(st.session_state.member_logged_exercises)
+            df_display = df_logged.copy()
+            df_display["Volume"] = df_display["Volume"].apply(lambda x: f"{x:,.0f} kg")
+            st.dataframe(df_display, use_container_width=True, hide_index=True)
+
+            st.success(f"👉 **Ready to see your progress graph?** Open **Tab 3 (📈 My Progress & Plateau Detector)** to see this `{total_today:,.0f} kg` volume plotted on your overload trajectory!")
 
     with member_tabs[2]:
         st.markdown("### 📈 **Progressive Overload & Muscle Plateau Detector**")
@@ -2545,6 +2611,9 @@ elif portal_mode == "🏋️ Gym Member / User View":
             p4_input = (d4_input / max(s3_vol, 1)) * 100
             d4_icon = "🟢" if d4_input > 0 else ("🔴" if d4_input < 0 else "⚪")
             st.caption(f"{d4_icon} **Δ vs W3:** `{d4_input:+,.0f} kg ({p4_input:+.1f}%)`")
+            if st.session_state.get("member_logged_exercises"):
+                tot_log = sum(e["Volume"] for e in st.session_state.member_logged_exercises)
+                st.caption(f"⚡ *Live synced from Tab 2 ({tot_log:,.0f} kg)*")
 
         # Check for unsaved changes between input boxes and saved progress
         current_inputs = [int(s1_vol), int(s2_vol), int(s3_vol), int(s4_vol)]
