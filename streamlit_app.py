@@ -2673,6 +2673,26 @@ elif portal_mode == "🏋️ Gym Member / User View":
 
         st.markdown("---")
 
+        st.markdown("""
+        <style>
+        [data-testid="stMetricValue"] {
+            font-size: 1.35rem !important;
+            white-space: normal !important;
+            word-break: break-word !important;
+        }
+        [data-testid="stMetricLabel"] {
+            white-space: normal !important;
+            word-break: break-word !important;
+            font-size: 0.85rem !important;
+        }
+        [data-testid="stMetricDelta"] {
+            white-space: normal !important;
+            word-break: break-word !important;
+            font-size: 0.80rem !important;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
         # 4. Live KPI Performance Metrics (Driven by Saved Progress)
         kpi_c1, kpi_c2, kpi_c3, kpi_c4 = st.columns(4)
         with kpi_c1:
