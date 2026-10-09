@@ -26,6 +26,7 @@ from app.engines.tek import tek
 from app.core.security import verify_password, create_access_token, hash_password, generate_login_otp, verify_login_otp
 from app.services.aws_sns import aws_sns_service, format_e164
 from app.services.aws_s3 import aws_s3_service
+from app.services.email_service import email_service
 from app.database import db_store, init_db, SessionLocal
 from app.models.db_models import UserModel, MemberRecordModel
 from app.models.intents import IntentObject
@@ -568,39 +569,78 @@ if portal_mode == "🔐 Member & Admin Login (via OTP)":
             if st.session_state.otp_step == "request":
                 st.subheader("1️⃣ Enter Your Registered Mobile Number or Email")
                 
-                # AWS Cloud Gateway Configuration Expander
-                with st.expander("☁️ **AWS Cloud Gateway Configuration & Status (Amazon SNS)**", expanded=False):
-                    aws_status = aws_sns_service.check_sns_configuration(st.session_state.get("custom_aws_credentials"))
-                    if aws_status["configured"]:
-                        st.success(f"🟢 **Amazon SNS Active**: Connected to AWS Region `{aws_status['region']}` (Key: `{aws_status['masked_key']}`). Real SMS will be delivered directly to your mobile phone via carrier gateways!")
-                    else:
-                        st.info(f"🟡 **Sandbox Simulation Active**: Boto3 engine is ready. Standard demo OTPs display securely on-screen. To test real live SMS dispatch to your physical phone via AWS, enter your AWS credentials below:")
-                    
-                    col_aws_k1, col_aws_k2 = st.columns(2)
-                    with col_aws_k1:
-                        aws_key_input = st.text_input("AWS Access Key ID", value=st.session_state.get("custom_aws_credentials", {}).get("aws_access_key_id", ""), type="password", placeholder="e.g. AKIAIOSFODNN7EXAMPLE")
-                        aws_reg_input = st.selectbox("AWS Region", ["ap-south-1 (Mumbai)", "us-east-1 (N. Virginia)", "eu-west-1 (Ireland)", "ap-southeast-1 (Singapore)"], index=0)
-                    with col_aws_k2:
-                        aws_sec_input = st.text_input("AWS Secret Access Key", value=st.session_state.get("custom_aws_credentials", {}).get("aws_secret_access_key", ""), type="password", placeholder="e.g. wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY")
-                        col_save_aws, col_reset_aws = st.columns([1, 1])
-                        with col_save_aws:
-                            if st.button("💾 Apply AWS Keys", use_container_width=True):
-                                reg = aws_reg_input.split(" ")[0]
-                                if aws_key_input.strip() and aws_sec_input.strip():
-                                    st.session_state.custom_aws_credentials = {
-                                        "aws_access_key_id": aws_key_input.strip(),
-                                        "aws_secret_access_key": aws_sec_input.strip(),
-                                        "region_name": reg
+                # Unified SMS & Email Gateway Configuration Expander
+                with st.expander("🌐 **Real-Time Dispatch Gateway Configuration (SMS & Email)**", expanded=False):
+                    tab_gw_email, tab_gw_sms = st.tabs(["📧 Email Gateway (SMTP / Gmail)", "📲 SMS Gateway (AWS Amazon SNS)"])
+
+                    with tab_gw_email:
+                        email_status = email_service.check_email_configuration(st.session_state.get("custom_smtp_credentials"))
+                        if email_status["configured"]:
+                            st.success(f"🟢 **SMTP Live Email Active**: Connected via `{email_status['smtp_host']}:{email_status['smtp_port']}` (Account: `{email_status['masked_user']}`). Real verification emails will be delivered directly to the entered email address!")
+                        else:
+                            st.info("🟡 **Email Simulation Active**: Standard demo OTPs display securely on-screen. To deliver real verification emails to your actual Gmail/Outlook inbox, enter your SMTP details below:")
+
+                        c_em1, c_em2 = st.columns(2)
+                        with c_em1:
+                            smtp_host_in = st.text_input("SMTP Host", value=st.session_state.get("custom_smtp_credentials", {}).get("smtp_host", "smtp.gmail.com"), placeholder="smtp.gmail.com")
+                            smtp_user_in = st.text_input("SMTP Username / Email", value=st.session_state.get("custom_smtp_credentials", {}).get("smtp_user", ""), placeholder="yourname@gmail.com")
+                        with c_em2:
+                            smtp_port_in = st.number_input("SMTP Port", value=int(st.session_state.get("custom_smtp_credentials", {}).get("smtp_port", 587)), min_value=25, max_value=65535)
+                            smtp_pass_in = st.text_input("SMTP Password / App Password", value=st.session_state.get("custom_smtp_credentials", {}).get("smtp_password", ""), type="password", placeholder="16-character Google App Password")
+
+                        c_em_save, c_em_reset = st.columns(2)
+                        with c_em_save:
+                            if st.button("💾 Apply Email Credentials", use_container_width=True, key="btn_save_smtp"):
+                                if smtp_user_in.strip() and smtp_pass_in.strip():
+                                    st.session_state.custom_smtp_credentials = {
+                                        "smtp_host": smtp_host_in.strip(),
+                                        "smtp_port": int(smtp_port_in),
+                                        "smtp_user": smtp_user_in.strip(),
+                                        "smtp_password": smtp_pass_in.strip(),
+                                        "from_email": smtp_user_in.strip()
                                     }
-                                    st.toast("✅ AWS SNS credentials configured for this session!", icon="☁️")
+                                    st.toast("✅ SMTP credentials saved for this session! Real emails will be sent.", icon="📧")
                                     st.rerun()
                                 else:
-                                    st.warning("⚠️ Please provide both Access Key ID and Secret Access Key.")
-                        with col_reset_aws:
-                            if st.button("🔄 Reset to Simulation", use_container_width=True):
-                                st.session_state.pop("custom_aws_credentials", None)
+                                    st.warning("⚠️ Please provide both Username and App Password.")
+                        with c_em_reset:
+                            if st.button("🔄 Reset to Email Simulation", use_container_width=True, key="btn_reset_smtp"):
+                                st.session_state.pop("custom_smtp_credentials", None)
                                 st.toast("Reset to simulation sandbox mode.", icon="🔄")
                                 st.rerun()
+
+                    with tab_gw_sms:
+                        aws_status = aws_sns_service.check_sns_configuration(st.session_state.get("custom_aws_credentials"))
+                        if aws_status["configured"]:
+                            st.success(f"🟢 **Amazon SNS Active**: Connected to AWS Region `{aws_status['region']}` (Key: `{aws_status['masked_key']}`). Real SMS will be delivered directly to physical mobile phones via carrier gateways!")
+                        else:
+                            st.info("🟡 **SMS Simulation Active**: Boto3 engine is ready. Standard demo OTPs display securely on-screen. To deliver real live SMS to your phone via AWS, enter your credentials below:")
+                        
+                        col_aws_k1, col_aws_k2 = st.columns(2)
+                        with col_aws_k1:
+                            aws_key_input = st.text_input("AWS Access Key ID", value=st.session_state.get("custom_aws_credentials", {}).get("aws_access_key_id", ""), type="password", placeholder="e.g. AKIAIOSFODNN7EXAMPLE")
+                            aws_reg_input = st.selectbox("AWS Region", ["ap-south-1 (Mumbai)", "us-east-1 (N. Virginia)", "eu-west-1 (Ireland)", "ap-southeast-1 (Singapore)"], index=0)
+                        with col_aws_k2:
+                            aws_sec_input = st.text_input("AWS Secret Access Key", value=st.session_state.get("custom_aws_credentials", {}).get("aws_secret_access_key", ""), type="password", placeholder="e.g. wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY")
+                            col_save_aws, col_reset_aws = st.columns([1, 1])
+                            with col_save_aws:
+                                if st.button("💾 Apply AWS Keys", use_container_width=True, key="btn_save_aws"):
+                                    reg = aws_reg_input.split(" ")[0]
+                                    if aws_key_input.strip() and aws_sec_input.strip():
+                                        st.session_state.custom_aws_credentials = {
+                                            "aws_access_key_id": aws_key_input.strip(),
+                                            "aws_secret_access_key": aws_sec_input.strip(),
+                                            "region_name": reg
+                                        }
+                                        st.toast("✅ AWS SNS credentials configured for this session!", icon="☁️")
+                                        st.rerun()
+                                    else:
+                                        st.warning("⚠️ Please provide both Access Key ID and Secret Access Key.")
+                            with col_reset_aws:
+                                if st.button("🔄 Reset to SMS Simulation", use_container_width=True, key="btn_reset_aws"):
+                                    st.session_state.pop("custom_aws_credentials", None)
+                                    st.toast("Reset to simulation sandbox mode.", icon="🔄")
+                                    st.rerun()
 
                 # Demo Personas Quick Select
                 st.markdown("**⚡ Quick-Select Demo Persona (1-Click Test):**")
@@ -637,9 +677,14 @@ if portal_mode == "🔐 Member & Admin Login (via OTP)":
                         st.error("⚠️ Please enter a valid mobile number or email address.")
                     else:
                         clean_ident = user_ident.strip()
-                        # Generate OTP with optional AWS credentials
-                        custom_creds = st.session_state.get("custom_aws_credentials")
-                        otp_rec = generate_login_otp(clean_ident, custom_aws_credentials=custom_creds)
+                        # Generate OTP with optional AWS and SMTP credentials
+                        custom_aws_creds = st.session_state.get("custom_aws_credentials")
+                        custom_smtp_creds = st.session_state.get("custom_smtp_credentials")
+                        otp_rec = generate_login_otp(
+                            clean_ident,
+                            custom_aws_credentials=custom_aws_creds,
+                            custom_smtp_credentials=custom_smtp_creds
+                        )
                         
                         # Look up account in database
                         matched_account = db_store.find_account_by_identifier(clean_ident)
@@ -657,33 +702,49 @@ if portal_mode == "🔐 Member & Admin Login (via OTP)":
                     st.rerun()
                 matched_acc = otp_rec.get("account")
                 
+                channel = otp_rec.get("channel", "SMS")
+                dispatch_mode = otp_rec.get("dispatch_mode", "simulation")
+                is_live_email = (dispatch_mode == "smtp_live")
+                is_live_sms = (dispatch_mode == "aws_sns")
+                is_live = is_live_email or is_live_sms
+
+                if channel == "Email":
+                    badge_icon = "✉️"
+                    badge_bg = "#065F46" if is_live_email else "#0369A1"
+                    badge_text = "🟢 Live Email Delivered (SMTP)" if is_live_email else "📧 Email Sandbox Simulator"
+                    badge_border = "#10B981" if is_live_email else "#38BDF8"
+                else:
+                    badge_icon = "📱"
+                    badge_bg = "#065F46" if is_live_sms else "#0369A1"
+                    badge_text = "🟢 AWS Amazon SNS Live SMS" if is_live_sms else "📱 Jio / Carrier Sandbox Simulator"
+                    badge_border = "#10B981" if is_live_sms else "#38BDF8"
+
                 st.subheader("2️⃣ Enter 6-Digit Verification Code")
-                st.write(f"We've sent a 6-digit OTP to **{otp_rec.get('masked_target', '')}** via {otp_rec.get('channel', 'SMS')} Gateway.")
-                
-                # Dynamic SMS / AWS Push Notification Card
-                is_aws = (otp_rec.get("dispatch_mode") == "aws_sns")
-                badge_bg = "#065F46" if is_aws else "#0369A1"
-                badge_text = "🟢 AWS Amazon SNS Live Dispatch" if is_aws else "Jio / Twilio Sandbox Simulator"
-                badge_border = "#10B981" if is_aws else "#38BDF8"
-                
+                st.write(f"We've sent a 6-digit OTP to **{otp_rec.get('raw_identifier', '')}** via {channel} Gateway.")
+
                 st.markdown(f"""
                 <div style="background: linear-gradient(135deg, #1E293B, #0F172A); border: 2px solid {badge_border}; border-radius: 12px; padding: 16px; margin-bottom: 20px; box-shadow: 0 4px 14px rgba(56, 189, 248, 0.2);">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <span style="font-weight: bold; color: {badge_border}; font-size: 14px;">📲 {otp_rec.get('channel', 'SMS').upper()} DISPATCH NOTIFICATION</span>
+                        <span style="font-weight: bold; color: {badge_border}; font-size: 14px;">{badge_icon} {channel.upper()} DISPATCH NOTIFICATION</span>
                         <span style="background-color: {badge_bg}; color: white; padding: 2px 10px; border-radius: 6px; font-size: 11px; font-weight: bold;">{badge_text}</span>
                     </div>
                     <div style="font-size: 15px; color: #F8FAFC; margin-bottom: 8px;">
                         <strong>FAM-FIOS Security:</strong> Your login OTP is <span style="font-size: 22px; font-weight: bold; color: #FCD34D; letter-spacing: 4px; padding: 2px 8px; background: rgba(0,0,0,0.4); border-radius: 4px;">{otp_rec.get('otp', '000000')}</span>. Valid for 5 minutes.
                     </div>
                     <div style="font-size: 12px; color: #94A3B8;">
-                        Target: {otp_rec.get('raw_identifier', '')} | Region: {otp_rec.get('region', 'ap-south-1')} | Ref: {otp_rec.get('aws_message_id', 'AUTH-OTP-000')}
+                        Target: <b>{otp_rec.get('raw_identifier', '')}</b> &bull; Channel: <b>{channel}</b> &bull; Ref: {otp_rec.get('aws_message_id', 'AUTH-OTP-000')}
                     </div>
-                    <div style="font-size: 11px; color: {'#6EE7B7' if is_aws else '#93C5FD'}; margin-top: 5px;">
+                    <div style="font-size: 11px; color: {'#6EE7B7' if is_live else '#93C5FD'}; margin-top: 5px;">
                         <strong>Gateway Status:</strong> {otp_rec.get('aws_status_text', 'Dispatched successfully')}
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
                 
+                if is_live_email:
+                    st.success(f"📨 **Live Email Sent!** Verification code delivered to `{otp_rec.get('raw_identifier')}` via SMTP.")
+                elif is_live_sms:
+                    st.success(f"📲 **Live SMS Sent!** Verification code delivered to `{otp_rec.get('raw_identifier')}` via Amazon SNS.")
+
                 col_otp_fill, col_otp_resend = st.columns([1, 1])
                 with col_otp_fill:
                     if st.button("⚡ 1-Click Auto-Fill OTP", use_container_width=True):
@@ -692,12 +753,17 @@ if portal_mode == "🔐 Member & Admin Login (via OTP)":
                         
                 with col_otp_resend:
                     if st.button("🔁 Resend New OTP", use_container_width=True):
-                        custom_creds = st.session_state.get("custom_aws_credentials")
-                        new_rec = generate_login_otp(otp_rec.get('raw_identifier', ''), custom_aws_credentials=custom_creds)
+                        custom_aws_creds = st.session_state.get("custom_aws_credentials")
+                        custom_smtp_creds = st.session_state.get("custom_smtp_credentials")
+                        new_rec = generate_login_otp(
+                            otp_rec.get('raw_identifier', ''),
+                            custom_aws_credentials=custom_aws_creds,
+                            custom_smtp_credentials=custom_smtp_creds
+                        )
                         new_rec["account"] = matched_acc
                         st.session_state.active_otp_record = new_rec
                         st.session_state.entered_otp_val = ""
-                        st.toast("📨 New OTP sent to your device!", icon="📲")
+                        st.toast(f"📨 New OTP dispatched to {otp_rec.get('raw_identifier', '')}!", icon="📲")
                         st.rerun()
                         
                 curr_otp = st.session_state.get("entered_otp_val", "")

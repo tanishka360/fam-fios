@@ -92,10 +92,12 @@ def _mask_identifier(identifier: str) -> str:
 
 def generate_login_otp(
     identifier: str,
-    custom_aws_credentials: Optional[Dict[str, str]] = None
+    custom_aws_credentials: Optional[Dict[str, str]] = None,
+    custom_smtp_credentials: Optional[Dict[str, str]] = None
 ) -> Dict[str, Any]:
-    """Generates a secure, 6-digit numeric OTP valid for 5 minutes and dispatches it via AWS SNS if applicable."""
+    """Generates a secure, 6-digit numeric OTP valid for 5 minutes and dispatches it via AWS SNS (SMS) or SMTP/SES (Email)."""
     from app.services.aws_sns import aws_sns_service
+    from app.services.email_service import email_service
     normalized = _normalize_identifier(identifier)
     otp_code = str(secrets.randbelow(900000) + 100000)
     now = datetime.utcnow()
@@ -113,14 +115,13 @@ def generate_login_otp(
             custom_credentials=custom_aws_credentials
         )
     else:
-        dispatch_info = {
-            "success": True,
-            "mode": "email_simulation",
-            "message_id": f"SIM-SES-{secrets.token_hex(3).upper()}",
-            "status_text": "Email OTP Simulation Channel (AWS SES Sandbox)",
-            "simulated": True,
-            "region": "ap-south-1"
-        }
+        # Dispatch via Email Service (real SMTP or fallback to simulation)
+        dispatch_info = email_service.send_email_otp(
+            recipient_email=identifier,
+            otp_code=otp_code,
+            custom_credentials=custom_smtp_credentials,
+            custom_aws_credentials=custom_aws_credentials
+        )
 
     otp_record = {
         "otp": otp_code,
