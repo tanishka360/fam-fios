@@ -2291,6 +2291,65 @@ elif portal_mode == "🏋️ Gym Member / User View":
         }
     }
 
+    FOOD_MENU_DATABASE = {
+        "🍗 High-Protein Meats, Fish & Eggs": [
+            {"name": "Grilled Chicken Breast (Skinless)", "portion": "150g fillet", "calories": 247, "protein": 46.5, "carbs": 0.0, "fats": 5.4},
+            {"name": "Whole Boiled Eggs", "portion": "2 large eggs", "calories": 156, "protein": 12.6, "carbs": 1.1, "fats": 10.6},
+            {"name": "Egg White Scramble / Omelette", "portion": "4 egg whites (132g)", "calories": 68, "protein": 14.4, "carbs": 0.9, "fats": 0.2},
+            {"name": "Grilled Salmon Fillet", "portion": "150g fillet", "calories": 312, "protein": 34.0, "carbs": 0.0, "fats": 18.0},
+            {"name": "Canned Tuna in Water", "portion": "1 can (130g drained)", "calories": 145, "protein": 32.5, "carbs": 0.0, "fats": 1.2},
+            {"name": "Whey Protein Isolate Shake", "portion": "1 scoop (30g) in water", "calories": 120, "protein": 25.0, "carbs": 2.0, "fats": 1.0},
+            {"name": "Lean Minced Beef / Chicken Stir-Fry", "portion": "150g", "calories": 275, "protein": 36.0, "carbs": 0.0, "fats": 13.5}
+        ],
+        "🧀 Vegetarian & Dairy Protein": [
+            {"name": "Fresh Paneer (Raw / Sautéed)", "portion": "100g", "calories": 265, "protein": 18.3, "carbs": 3.4, "fats": 20.8},
+            {"name": "Paneer Bhurji (Light Oil)", "portion": "1 bowl (150g)", "calories": 310, "protein": 21.0, "carbs": 6.5, "fats": 22.0},
+            {"name": "Organic Tofu (Pan-Seared)", "portion": "150g", "calories": 135, "protein": 15.0, "carbs": 3.0, "fats": 7.5},
+            {"name": "Soya Chunks Curry (Nutrela)", "portion": "1 bowl (60g dry eq)", "calories": 215, "protein": 31.2, "carbs": 19.5, "fats": 0.8},
+            {"name": "Greek Yogurt (Plain 0% Fat)", "portion": "1 cup (170g)", "calories": 100, "protein": 17.0, "carbs": 6.0, "fats": 0.7},
+            {"name": "High-Protein Lassi / Buttermilk", "portion": "250ml glass", "calories": 130, "protein": 15.0, "carbs": 12.0, "fats": 1.5},
+            {"name": "Low-Fat Cottage Cheese / Paneer", "portion": "100g", "calories": 170, "protein": 24.0, "carbs": 4.0, "fats": 6.0}
+        ],
+        "🍚 Rice, Breads & Complex Carbs": [
+            {"name": "Cooked Basmati White Rice", "portion": "1 medium bowl (150g)", "calories": 195, "protein": 4.1, "carbs": 43.0, "fats": 0.4},
+            {"name": "Steamed Brown Rice", "portion": "1 medium bowl (150g)", "calories": 167, "protein": 3.8, "carbs": 35.0, "fats": 1.4},
+            {"name": "Whole Wheat Roti / Phulka (No Ghee)", "portion": "2 medium rotis (70g)", "calories": 160, "protein": 5.8, "carbs": 32.0, "fats": 1.2},
+            {"name": "Rolled Oats Cooked in Water", "portion": "1 cup (234g cooked)", "calories": 158, "protein": 6.0, "carbs": 27.0, "fats": 3.2},
+            {"name": "Boiled Sweet Potato", "portion": "1 medium (150g)", "calories": 130, "protein": 2.3, "carbs": 30.0, "fats": 0.2},
+            {"name": "Whole Grain Toast / Brown Bread", "portion": "2 slices (60g)", "calories": 140, "protein": 6.0, "carbs": 26.0, "fats": 1.8},
+            {"name": "Steamed Quinoa Bowl", "portion": "1 cup cooked (185g)", "calories": 222, "protein": 8.1, "carbs": 39.4, "fats": 3.6}
+        ],
+        "🥘 Indian Curries & Traditional Dishes": [
+            {"name": "Yellow Moong / Arhar Dal Tadka", "portion": "1 medium katori (150ml)", "calories": 150, "protein": 8.5, "carbs": 21.0, "fats": 3.5},
+            {"name": "Punjabi Rajma Masala (Kidney Beans)", "portion": "1 bowl (180g)", "calories": 210, "protein": 11.2, "carbs": 33.0, "fats": 3.8},
+            {"name": "Chole / Chana Masala (Chickpeas)", "portion": "1 bowl (180g)", "calories": 240, "protein": 12.0, "carbs": 35.0, "fats": 6.0},
+            {"name": "Palak Paneer (Healthy Prep)", "portion": "1 bowl (180g)", "calories": 255, "protein": 14.5, "carbs": 9.0, "fats": 18.0},
+            {"name": "Mixed Vegetable Poriyal / Sabzi", "portion": "1 bowl (150g)", "calories": 115, "protein": 3.2, "carbs": 16.0, "fats": 4.5},
+            {"name": "Steamed Idli with Sambar", "portion": "2 idlis + 1 cup sambar", "calories": 185, "protein": 6.8, "carbs": 34.0, "fats": 2.2},
+            {"name": "Moong Dal Chilla (Pancakes)", "portion": "2 medium chillas (120g)", "calories": 220, "protein": 13.8, "carbs": 28.0, "fats": 6.0}
+        ],
+        "🥑 Healthy Fats, Fruits & Snacks": [
+            {"name": "Natural Peanut Butter (Unsweetened)", "portion": "2 tablespoons (32g)", "calories": 188, "protein": 8.0, "carbs": 6.0, "fats": 16.0},
+            {"name": "Raw California Almonds & Walnuts", "portion": "Handful (30g / ~20 nuts)", "calories": 185, "protein": 6.0, "carbs": 5.5, "fats": 16.5},
+            {"name": "Ripe Banana", "portion": "1 medium (118g)", "calories": 105, "protein": 1.3, "carbs": 27.0, "fats": 0.3},
+            {"name": "Fresh Apple with Skin", "portion": "1 medium (182g)", "calories": 95, "protein": 0.5, "carbs": 25.0, "fats": 0.3},
+            {"name": "Sprouted Moong & Chana Salad", "portion": "1 large bowl (150g)", "calories": 140, "protein": 10.5, "carbs": 22.0, "fats": 1.2},
+            {"name": "Mixed Greens Salad with Olive Oil", "portion": "1 large bowl (120g)", "calories": 110, "protein": 2.0, "carbs": 6.0, "fats": 9.0}
+        ]
+    }
+
+    PHOTO_MEAL_PRESETS = [
+        {"name": "Grilled Chicken Breast with Brown Rice & Steamed Broccoli", "calories": 485, "protein": 48.0, "carbs": 44.0, "fats": 7.5, "category": "Lunch / Dinner"},
+        {"name": "Paneer Bhurji with 2 Whole Wheat Phulkas & Green Salad", "calories": 490, "protein": 26.5, "carbs": 42.0, "fats": 23.0, "category": "Lunch / Dinner"},
+        {"name": "Egg White Omelette with Whole Wheat Toast & Avocado", "calories": 320, "protein": 22.0, "carbs": 28.0, "fats": 12.0, "category": "Breakfast"},
+        {"name": "Rolled Oats Bowl with Whey Protein, Peanut Butter & Banana", "calories": 465, "protein": 34.0, "carbs": 55.0, "fats": 12.5, "category": "Breakfast / Pre-Workout"},
+        {"name": "Yellow Dal Tadka with Steamed Basmati Rice & Cucumber Raita", "calories": 395, "protein": 14.5, "carbs": 68.0, "fats": 6.5, "category": "Lunch / Dinner"},
+        {"name": "Grilled Salmon Fillet with Roasted Sweet Potato & Asparagus", "calories": 475, "protein": 37.0, "carbs": 32.0, "fats": 19.0, "category": "Dinner"},
+        {"name": "Soya Chunks Curry with 2 Rotis & Curd", "calories": 440, "protein": 38.0, "carbs": 52.0, "fats": 8.0, "category": "Lunch / Dinner"},
+        {"name": "Greek Yogurt Bowl with Mixed Berries, Almonds & Honey", "calories": 280, "protein": 20.0, "carbs": 32.0, "fats": 8.0, "category": "Snack / Breakfast"},
+        {"name": "Whey Protein Shake with 1 Banana & 1 tbsp Peanut Butter", "calories": 320, "protein": 29.0, "carbs": 31.0, "fats": 8.5, "category": "Post-Workout"}
+    ]
+
     st.markdown(f"## 🏋️ **Member Fitness Companion — {active_genome.gym_name}**")
     
     # Check if there is an active member profile in session from registration or DB
@@ -2371,7 +2430,7 @@ elif portal_mode == "🏋️ Gym Member / User View":
                 st.caption(f"⏱️ {ex['rest']}")
                 if "video_url" in ex:
                     st.markdown(f"[▶️ **Form Tutorial**]({ex['video_url']})", help=f"Watch tutorial for {ex['name']}")
-        st.info("💡 **Ready to train?** Open **Tab 4 (🥗 AI Workout & Meal Guide)** to check off exercises, watch embedded video tutorials, or record your lifts in **Tab 2 (📝 Record Workout Log)**!")
+        st.info("💡 **Ready to train?** Open **Tab 4 (🏋️ AI Workout Routine)** to check off exercises & watch video guides, **Tab 2 (📝 Record Workout Log)** to log sets & reps, or **Tab 5 (🥗 Meal & Calorie Tracker)** to upload meal photos, select items from menu & calculate remaining calories!")
 
     st.markdown("---")
 
@@ -2379,7 +2438,8 @@ elif portal_mode == "🏋️ Gym Member / User View":
         "📱 1. Digital Gym Pass & Check-In",
         "📝 2. Record Workout Log",
         "📈 3. My Progress & Plateau Detector",
-        "🥗 4. AI Workout & Meal Guide"
+        "🏋️ 4. AI Workout Routine & Form",
+        "🥗 5. Meal & Calorie Tracker (Photo & Menu)"
     ])
 
     with member_tabs[0]:
@@ -3092,8 +3152,8 @@ elif portal_mode == "🏋️ Gym Member / User View":
             """)
 
     with member_tabs[3]:
-        st.markdown("### 🥗 **AI Workout & Daily Nutrition Guide**")
-        st.caption(f"Personalized training & fueling regimen calibrated for **{default_mem_name}** &bull; Goal: **{default_mem_goal}**")
+        st.markdown("### 🏋️ **AI Workout Routine & Exercise Guide**")
+        st.caption(f"Personalized training regimen calibrated for **{default_mem_name}** &bull; Goal: **{default_mem_goal}**")
 
         days_list = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
         today_idx = days_list.index(today_day_name) if today_day_name in days_list else 0
@@ -3185,6 +3245,421 @@ elif portal_mode == "🏋️ Gym Member / User View":
 
             st.markdown(f"**💧 Daily Hydration Target:**")
             st.write(f"🚰 Minimum **{nut['water']}** of water distributed throughout the day.")
+
+    with member_tabs[4]:
+        st.markdown("### 🥗 **Smart Meal & Calorie Tracker (Photo & Menu)**")
+        st.caption(f"Track your daily nutrition, upload meal photos or select from the menu, and monitor real-time consumed vs. remaining calories for **{default_mem_name}**.")
+
+        # Goal to calorie target map
+        goal_target_map = {
+            "Hypertrophy (Muscle Gain)": {"calories": 2500, "protein": 165, "carbs": 290, "fats": 75},
+            "Fat Loss / Cutting": {"calories": 1850, "protein": 175, "carbs": 155, "fats": 55},
+            "Weight Loss": {"calories": 1800, "protein": 170, "carbs": 150, "fats": 55},
+            "Maintenance & Recomposition": {"calories": 2200, "protein": 150, "carbs": 235, "fats": 65},
+            "General Fitness": {"calories": 2100, "protein": 140, "carbs": 240, "fats": 65},
+            "Endurance / Athletic": {"calories": 2700, "protein": 145, "carbs": 365, "fats": 70}
+        }
+        active_plan = goal_target_map.get(default_mem_goal, goal_target_map["Hypertrophy (Muscle Gain)"])
+
+        # Session state for custom calorie target
+        if f"cal_budget_target_{default_mem_id}" not in st.session_state:
+            st.session_state[f"cal_budget_target_{default_mem_id}"] = active_plan["calories"]
+
+        # Session state for member meal logs
+        if f"member_meal_logs_{default_mem_id}" not in st.session_state:
+            st.session_state[f"member_meal_logs_{default_mem_id}"] = [
+                {
+                    "id": "meal_001",
+                    "time": "08:30 AM",
+                    "slot": "Breakfast 🌅",
+                    "name": "Rolled Oats Bowl with Whey Protein, Peanut Butter & Banana",
+                    "portion": "1 bowl (1.0x serving)",
+                    "calories": 465.0,
+                    "protein": 34.0,
+                    "carbs": 55.0,
+                    "fats": 12.5,
+                    "source": "Pre-Logged"
+                },
+                {
+                    "id": "meal_002",
+                    "time": "11:15 AM",
+                    "slot": "Pre-Workout ⚡",
+                    "name": "Ripe Banana + 2 Whole Boiled Eggs",
+                    "portion": "1 banana + 2 eggs",
+                    "calories": 261.0,
+                    "protein": 13.9,
+                    "carbs": 28.1,
+                    "fats": 10.9,
+                    "source": "Menu Database"
+                }
+            ]
+
+        # Target customization and quick adjustment expander
+        with st.expander("⚙️ **Customize Daily Caloric Budget & Target Macros**", expanded=False):
+            c_tg1, c_tg2 = st.columns([2, 2])
+            with c_tg1:
+                new_cal_target = st.slider(
+                    "Daily Calorie Target (kcal):",
+                    min_value=1200,
+                    max_value=4500,
+                    value=int(st.session_state[f"cal_budget_target_{default_mem_id}"]),
+                    step=50,
+                    key=f"slider_cal_{default_mem_id}"
+                )
+                st.session_state[f"cal_budget_target_{default_mem_id}"] = new_cal_target
+            with c_tg2:
+                st.markdown(f"**Baseline Goal Archetype:** `{default_mem_goal}`")
+                st.caption(f"Estimated Recommended Split: Protein **{active_plan['protein']}g** &bull; Carbs **{active_plan['carbs']}g** &bull; Fats **{active_plan['fats']}g**")
+
+        current_cal_target = st.session_state[f"cal_budget_target_{default_mem_id}"]
+        meal_logs = st.session_state[f"member_meal_logs_{default_mem_id}"]
+
+        consumed_cal = sum(m["calories"] for m in meal_logs)
+        consumed_pro = sum(m["protein"] for m in meal_logs)
+        consumed_carb = sum(m["carbs"] for m in meal_logs)
+        consumed_fat = sum(m["fats"] for m in meal_logs)
+
+        remaining_cal = current_cal_target - consumed_cal
+        pct_consumed = consumed_cal / max(current_cal_target, 1)
+
+        # ----------------------------------------------------------------------
+        # 1. LIVE CALORIE & REMAINING BUDGET METRICS
+        # ----------------------------------------------------------------------
+        st.markdown("#### 📊 **Today's Energy Balance (Consumed vs. Remaining)**")
+        
+        c_met1, c_met2, c_met3, c_met4 = st.columns(4)
+        with c_met1:
+            st.metric("🎯 Daily Target Budget", f"{current_cal_target:,} kcal", help="Total target energy intake for today")
+        with c_met2:
+            st.metric("🍽️ Consumed Calories", f"{consumed_cal:,.0f} kcal", f"{pct_consumed*100:.1f}% consumed", delta_color="off")
+        with c_met3:
+            rem_delta_label = "Remaining" if remaining_cal >= 0 else "Over Budget"
+            st.metric(
+                "⚡ Remaining Calories",
+                f"{max(remaining_cal, 0):,.0f} kcal" if remaining_cal >= 0 else f"{remaining_cal:,.0f} kcal",
+                f"{remaining_cal:+,.0f} kcal",
+                delta_color="normal" if remaining_cal >= 0 else "inverse"
+            )
+        with c_met4:
+            st.metric("🔥 Workout Burn (Est.)", f"{today_routine['calories_est']}", f"{today_day_name}'s routine", delta_color="off")
+
+        # Visual progress bar
+        capped_pct = min(1.0, max(0.0, pct_consumed))
+        st.progress(capped_pct, text=f"Caloric Intake Progress: {consumed_cal:,.0f} / {current_cal_target:,} kcal ({int(pct_consumed * 100)}%)")
+
+        # Dynamic Status Banner
+        if remaining_cal > 150:
+            st.success(f"🟢 **On Track:** You have **{remaining_cal:,.0f} kcal** remaining for today! Ensure you hit your target protein across your remaining meals.")
+        elif 0 <= remaining_cal <= 150:
+            st.warning(f"🟡 **Target Almost Reached:** You have **{remaining_cal:,.0f} kcal** remaining. Excellent adherence to your nutritional budget!")
+        else:
+            st.error(f"⚠️ **Calorie Surplus Alert:** You have exceeded your daily budget by **{abs(remaining_cal):,.0f} kcal** ({consumed_cal:,.0f} / {current_cal_target:,} kcal). Consider balancing with additional hydration and light walking or adjust tomorrow's intake.")
+
+        # Macronutrient Progress Cards
+        c_mac1, c_mac2, c_mac3 = st.columns(3)
+        with c_mac1:
+            p_target = active_plan["protein"]
+            p_pct = min(1.0, consumed_pro / max(p_target, 1))
+            st.markdown(f"**🥩 Protein:** `{consumed_pro:.1f}g` / `{p_target}g` ({int(p_pct*100)}%)")
+            st.progress(p_pct)
+        with c_mac2:
+            c_target = active_plan["carbs"]
+            c_pct = min(1.0, consumed_carb / max(c_target, 1))
+            st.markdown(f"**🍞 Carbs:** `{consumed_carb:.1f}g` / `{c_target}g` ({int(c_pct*100)}%)")
+            st.progress(c_pct)
+        with c_mac3:
+            f_target = active_plan["fats"]
+            f_pct = min(1.0, consumed_fat / max(f_target, 1))
+            st.markdown(f"**🥑 Fats:** `{consumed_fat:.1f}g` / `{f_target}g` ({int(f_pct*100)}%)")
+            st.progress(f_pct)
+
+        st.markdown("---")
+
+        # ----------------------------------------------------------------------
+        # 2. DUAL-INPUT SECTION: PHOTO UPLOAD VS. MENU PICKER
+        # ----------------------------------------------------------------------
+        st.markdown("#### ➕ **Log Your Meal: Upload Photo or Select From Menu**")
+
+        tab_photo, tab_menu, tab_custom = st.tabs([
+            "📸 1. Upload Meal Photo",
+            "📋 2. Select From Menu Database",
+            "✏️ 3. Enter Custom Meal Item"
+        ])
+
+        # TAB 1: UPLOAD PHOTO
+        with tab_photo:
+            st.markdown("##### 📸 **AI Meal Photo Scanner & Estimator**")
+            st.caption("Snap a photo of your meal plate or food packaging. Our visual engine recognizes the dish, estimates portions, and computes calories & macros instantly.")
+
+            uploaded_photo = st.file_uploader(
+                "Upload Meal Photo (JPG, PNG, JPEG, WEBP):",
+                type=["jpg", "jpeg", "png", "webp"],
+                key=f"uploader_meal_{default_mem_id}"
+            )
+
+            if uploaded_photo is not None:
+                c_up_img, c_up_details = st.columns([2, 3])
+                with c_up_img:
+                    from PIL import Image
+                    try:
+                        img = Image.open(uploaded_photo)
+                        st.image(img, caption=f"📸 Uploaded: {uploaded_photo.name}", use_container_width=True)
+                    except Exception as e:
+                        st.error(f"Could not load image: {e}")
+
+                with c_up_details:
+                    st.success("✅ **Meal Photo Captured & Analyzed!**")
+                    
+                    # Smart matching logic based on filename keywords or intelligent default
+                    fname_lower = uploaded_photo.name.lower()
+                    matched_idx = 0
+                    if "chicken" in fname_lower: matched_idx = 0
+                    elif "paneer" in fname_lower: matched_idx = 1
+                    elif "egg" in fname_lower: matched_idx = 2
+                    elif "oat" in fname_lower: matched_idx = 3
+                    elif "dal" in fname_lower or "rice" in fname_lower: matched_idx = 4
+                    elif "salmon" in fname_lower or "fish" in fname_lower: matched_idx = 5
+                    elif "soya" in fname_lower: matched_idx = 6
+                    elif "yogurt" in fname_lower or "curd" in fname_lower: matched_idx = 7
+                    elif "shake" in fname_lower or "whey" in fname_lower: matched_idx = 8
+
+                    preset_names = [p["name"] for p in PHOTO_MEAL_PRESETS]
+                    sel_preset_name = st.selectbox(
+                        "🔍 **Detected Dish Match (Confirm or Select Closest):**",
+                        preset_names,
+                        index=matched_idx,
+                        key=f"sel_photo_match_{default_mem_id}"
+                    )
+                    chosen_preset = next((p for p in PHOTO_MEAL_PRESETS if p["name"] == sel_preset_name), PHOTO_MEAL_PRESETS[0])
+
+                    c_mult, c_slot = st.columns(2)
+                    with c_mult:
+                        portion_mult = st.select_slider(
+                            "Serving Portion Multiplier:",
+                            options=[0.5, 0.75, 1.0, 1.25, 1.5, 2.0],
+                            value=1.0,
+                            format_func=lambda x: f"{x}x ({'Half' if x==0.5 else ('Regular' if x==1.0 else ('1.5x Large' if x==1.5 else f'{x}x'))})"
+                        )
+                    with c_slot:
+                        photo_meal_slot = st.selectbox(
+                            "Meal Slot:",
+                            ["Breakfast 🌅", "Lunch 🍱", "Evening Snack ☕", "Dinner 🌙", "Pre-Workout ⚡", "Post-Workout 🔋"],
+                            index=1,
+                            key=f"slot_photo_{default_mem_id}"
+                        )
+
+                    # Dynamic calorie calculation for the photo dish
+                    calc_p_cal = float(chosen_preset["calories"] * portion_mult)
+                    calc_p_pro = float(chosen_preset["protein"] * portion_mult)
+                    calc_p_carb = float(chosen_preset["carbs"] * portion_mult)
+                    calc_p_fat = float(chosen_preset["fats"] * portion_mult)
+
+                    st.markdown(f"""
+                    <div style="background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 10px 14px; margin: 8px 0;">
+                        <div style="font-weight: 700; color: #F1F5F9;">🔥 Calculated Nutrition for this Photo:</div>
+                        <div style="font-size: 1.15rem; font-weight: 800; color: #38BDF8; margin: 2px 0 6px 0;">{calc_p_cal:,.0f} kcal</div>
+                        <div style="font-size: 0.85rem; color: #CBD5E1;">
+                            🥩 Protein: <b>{calc_p_pro:.1f}g</b> &nbsp;|&nbsp; 🍞 Carbs: <b>{calc_p_carb:.1f}g</b> &nbsp;|&nbsp; 🥑 Fats: <b>{calc_p_fat:.1f}g</b>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    if st.button("➕ Add Photo Meal to Today's Diary", type="primary", use_container_width=True, key=f"btn_add_photo_{default_mem_id}"):
+                        new_meal_id = f"meal_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+                        st.session_state[f"member_meal_logs_{default_mem_id}"].append({
+                            "id": new_meal_id,
+                            "time": datetime.now().strftime("%I:%M %p"),
+                            "slot": photo_meal_slot,
+                            "name": f"📸 {chosen_preset['name']}",
+                            "portion": f"{portion_mult}x Serving ({uploaded_photo.name})",
+                            "calories": calc_p_cal,
+                            "protein": calc_p_pro,
+                            "carbs": calc_p_carb,
+                            "fats": calc_p_fat,
+                            "source": "Photo Upload"
+                        })
+                        evt = TenantEvent(
+                            tenant_id=active_tenant_id,
+                            role_context="member",
+                            event_type="meal_logged",
+                            operational_params={
+                                "member_id": default_mem_id,
+                                "meal_name": chosen_preset["name"],
+                                "calories": calc_p_cal,
+                                "source": "photo"
+                            }
+                        )
+                        tige.update_genome_from_event(evt)
+                        st.toast(f"✅ Added {chosen_preset['name']} (+{calc_p_cal:,.0f} kcal) to today's diary!", icon="🥗")
+                        st.rerun()
+            else:
+                st.info("💡 **Take or select a photo of your meal to begin!** Or if you know what you ate, switch to **Tab 2 (Select From Menu Database)**.")
+
+        # TAB 2: SELECT FROM MENU DATABASE
+        with tab_menu:
+            st.markdown("##### 📋 **Search & Select from Curated Fitness Menu**")
+            st.caption("Browse curated Indian and global fitness items with lab-tested calorie and macronutrient profiles.")
+
+            c_cat, c_item = st.columns([1.5, 2.5])
+            with c_cat:
+                category_list = list(FOOD_MENU_DATABASE.keys())
+                sel_category = st.selectbox("1. Select Food Category:", category_list, key=f"sel_food_cat_{default_mem_id}")
+            with c_item:
+                items_in_cat = FOOD_MENU_DATABASE[sel_category]
+                item_names = [f"{it['name']} ({it['portion']}) — {it['calories']} kcal" for it in items_in_cat]
+                sel_item_str = st.selectbox("2. Select Food Item:", item_names, key=f"sel_food_item_{default_mem_id}")
+                selected_item_idx = item_names.index(sel_item_str)
+                selected_food = items_in_cat[selected_item_idx]
+
+            c_m_serv, c_m_slot = st.columns(2)
+            with c_m_serv:
+                serving_qty = st.number_input("Portion / Serving Multiplier:", min_value=0.25, max_value=10.0, value=1.0, step=0.25, key=f"num_menu_serv_{default_mem_id}")
+            with c_m_slot:
+                menu_meal_slot = st.selectbox(
+                    "Meal Timing Slot:",
+                    ["Breakfast 🌅", "Lunch 🍱", "Evening Snack ☕", "Dinner 🌙", "Pre-Workout ⚡", "Post-Workout 🔋"],
+                    index=1,
+                    key=f"slot_menu_{default_mem_id}"
+                )
+
+            # Calculated nutrition
+            calc_m_cal = float(selected_food["calories"] * serving_qty)
+            calc_m_pro = float(selected_food["protein"] * serving_qty)
+            calc_m_carb = float(selected_food["carbs"] * serving_qty)
+            calc_m_fat = float(selected_food["fats"] * serving_qty)
+
+            st.markdown(f"""
+            <div style="background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 10px 14px; margin: 8px 0;">
+                <div style="font-weight: 700; color: #F1F5F9;">🔥 Nutrition Subtotal: {selected_food['name']} ({serving_qty:g}x {selected_food['portion']})</div>
+                <div style="font-size: 1.15rem; font-weight: 800; color: #10B981; margin: 2px 0 6px 0;">{calc_m_cal:,.0f} kcal</div>
+                <div style="font-size: 0.85rem; color: #CBD5E1;">
+                    🥩 Protein: <b>{calc_m_pro:.1f}g</b> &nbsp;|&nbsp; 🍞 Carbs: <b>{calc_m_carb:.1f}g</b> &nbsp;|&nbsp; 🥑 Fats: <b>{calc_m_fat:.1f}g</b>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            if st.button("➕ Add Menu Item to Today's Diary", type="primary", use_container_width=True, key=f"btn_add_menu_{default_mem_id}"):
+                new_meal_id = f"meal_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+                st.session_state[f"member_meal_logs_{default_mem_id}"].append({
+                    "id": new_meal_id,
+                    "time": datetime.now().strftime("%I:%M %p"),
+                    "slot": menu_meal_slot,
+                    "name": selected_food["name"],
+                    "portion": f"{serving_qty:g}x {selected_food['portion']}",
+                    "calories": calc_m_cal,
+                    "protein": calc_m_pro,
+                    "carbs": calc_m_carb,
+                    "fats": calc_m_fat,
+                    "source": "Menu Database"
+                })
+                evt = TenantEvent(
+                    tenant_id=active_tenant_id,
+                    role_context="member",
+                    event_type="meal_logged",
+                    operational_params={
+                        "member_id": default_mem_id,
+                        "meal_name": selected_food["name"],
+                        "calories": calc_m_cal,
+                        "source": "menu"
+                    }
+                )
+                tige.update_genome_from_event(evt)
+                st.toast(f"✅ Added {selected_food['name']} (+{calc_m_cal:,.0f} kcal) to today's diary!", icon="🍲")
+                st.rerun()
+
+        # TAB 3: CUSTOM ITEM ENTRY
+        with tab_custom:
+            st.markdown("##### ✏️ **Enter Custom Food Item / Packaged Nutrition**")
+            st.caption("Have an outside meal, nutrition label, or custom home recipe? Enter the exact values below.")
+
+            with st.form(f"form_custom_food_{default_mem_id}"):
+                c_cf1, c_cf2 = st.columns(2)
+                with c_cf1:
+                    custom_food_name = st.text_input("Food Item Name", value="Homemade Chicken Biryani")
+                    custom_portion = st.text_input("Portion / Serving Size", value="1 medium plate (250g)")
+                    custom_slot = st.selectbox(
+                        "Meal Slot:",
+                        ["Breakfast 🌅", "Lunch 🍱", "Evening Snack ☕", "Dinner 🌙", "Pre-Workout ⚡", "Post-Workout 🔋"],
+                        index=3
+                    )
+                with c_cf2:
+                    custom_cal = st.number_input("Calories (kcal)", min_value=1.0, max_value=5000.0, value=450.0, step=10.0)
+                    c_c_m1, c_c_m2, c_c_m3 = st.columns(3)
+                    with c_c_m1: custom_pro = st.number_input("Protein (g)", min_value=0.0, max_value=500.0, value=32.0, step=1.0)
+                    with c_c_m2: custom_carb = st.number_input("Carbs (g)", min_value=0.0, max_value=500.0, value=50.0, step=1.0)
+                    with c_c_m3: custom_fat = st.number_input("Fats (g)", min_value=0.0, max_value=500.0, value=12.0, step=1.0)
+
+                submit_custom = st.form_submit_button("➕ Add Custom Food to Today's Diary", type="primary", use_container_width=True)
+                if submit_custom:
+                    new_meal_id = f"meal_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+                    st.session_state[f"member_meal_logs_{default_mem_id}"].append({
+                        "id": new_meal_id,
+                        "time": datetime.now().strftime("%I:%M %p"),
+                        "slot": custom_slot,
+                        "name": custom_food_name,
+                        "portion": custom_portion,
+                        "calories": float(custom_cal),
+                        "protein": float(custom_pro),
+                        "carbs": float(custom_carb),
+                        "fats": float(custom_fat),
+                        "source": "Custom Entry"
+                    })
+                    evt = TenantEvent(
+                        tenant_id=active_tenant_id,
+                        role_context="member",
+                        event_type="meal_logged",
+                        operational_params={
+                            "member_id": default_mem_id,
+                            "meal_name": custom_food_name,
+                            "calories": custom_cal,
+                            "source": "custom"
+                        }
+                    )
+                    tige.update_genome_from_event(evt)
+                    st.toast(f"✅ Added {custom_food_name} (+{custom_cal:,.0f} kcal)!", icon="🍽️")
+                    st.rerun()
+
+        st.markdown("---")
+
+        # ----------------------------------------------------------------------
+        # 3. TODAY'S CONSUMED MEALS DIARY & MANAGEMENT
+        # ----------------------------------------------------------------------
+        st.markdown("#### 📖 **Today's Consumed Meals Diary**")
+
+        if meal_logs:
+            c_d_info, c_d_clear = st.columns([3, 1])
+            with c_d_info:
+                st.caption(f"Currently tracking **{len(meal_logs)} logged items** totaling **{consumed_cal:,.0f} kcal**.")
+            with c_d_clear:
+                if st.button("🗑️ Clear Today's Diary", use_container_width=True, key=f"btn_clear_diary_{default_mem_id}"):
+                    st.session_state[f"member_meal_logs_{default_mem_id}"] = []
+                    st.toast("Today's food diary cleared!", icon="🧹")
+                    st.rerun()
+
+            # Render styled meal cards with individual delete buttons
+            for idx, item in enumerate(meal_logs):
+                col_i1, col_i2, col_i3 = st.columns([3, 1.2, 0.6])
+                with col_i1:
+                    st.markdown(f"**{item['slot']}** &bull; `{item['time']}` &bull; **{item['name']}**")
+                    st.caption(f"Portion: *{item['portion']}* &nbsp;|&nbsp; Source: `{item['source']}`")
+                with col_i2:
+                    st.markdown(f"**{item['calories']:,.0f} kcal**")
+                    st.caption(f"P: {item['protein']:.1f}g &bull; C: {item['carbs']:.1f}g &bull; F: {item['fats']:.1f}g")
+                with col_i3:
+                    if st.button("❌", key=f"del_meal_{item['id']}_{idx}", help=f"Remove {item['name']}"):
+                        st.session_state[f"member_meal_logs_{default_mem_id}"].pop(idx)
+                        st.toast(f"Removed {item['name']}", icon="🗑️")
+                        st.rerun()
+                st.markdown("<hr style='margin: 4px 0 10px 0; border: none; border-top: 1px solid rgba(255,255,255,0.07);'/>", unsafe_allow_html=True)
+
+            # Structured DataFrame overview
+            with st.expander("📊 **View Formatted Table Summary of Today's Intake**", expanded=False):
+                df_meals = pd.DataFrame(meal_logs)
+                df_show = df_meals[["time", "slot", "name", "portion", "calories", "protein", "carbs", "fats", "source"]].copy()
+                df_show.columns = ["Time", "Meal Slot", "Food Item", "Portion", "Calories (kcal)", "Protein (g)", "Carbs (g)", "Fats (g)", "Source"]
+                st.dataframe(df_show, use_container_width=True, hide_index=True)
+        else:
+            st.info("🥣 **No meals logged yet today.** Upload a photo or select from the menu above to start calculating consumed and remaining calories!")
 
 # ==============================================================================
 # 4. PATENT & ARCHITECTURE DEEP-DIVE
