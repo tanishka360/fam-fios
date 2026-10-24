@@ -4,7 +4,7 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%20%7C%203.11-blue.svg)](https://www.python.org/downloads/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.30+-red.svg)](https://streamlit.io/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-green.svg)](https://fastapi.tiangolo.com/)
-[![Tests Passing](https://img.shields.io/badge/tests-35%2F35%20passing-brightgreen.svg)](https://github.com/tanishka360/fam-fios/actions)
+[![Tests Passing](https://img.shields.io/badge/tests-38%2F38%20passing-brightgreen.svg)](https://github.com/tanishka360/fam-fios/actions)
 [![AWS](https://img.shields.io/badge/AWS-SNS%20%7C%20S3%20Vault-orange.svg)](https://aws.amazon.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg)](https://www.docker.com/)
 [![Patent](https://img.shields.io/badge/Invention%20Disclosure-24BIT0370--24BIT0390--IDF--01-yellow.svg)](https://vit.ac.in)
@@ -163,9 +163,9 @@ The complete interactive operating system is delivered via **Streamlit** (`strea
 
 ---
 
-## 🧪 Comprehensive Automated Test Matrix (35 Tests Passing)
+## 🧪 Comprehensive Automated Test Matrix (38 Tests Passing)
 
-All 35 unit and integration tests execute with a 100% pass rate:
+All 38 unit and integration tests execute with a 100% pass rate:
 
 ```powershell
 pytest backend/tests -v
@@ -182,11 +182,11 @@ pytest backend/tests -v
 | `test_dtdfe.py` | Dynamic tenant dependency fabric graph reweighting | **PASSED (1/1)** |
 | `test_fafie.py` | Collaborative FedAvg aggregation & plateau detection | **PASSED (2/2)** |
 | `test_fafie_privacy_magnitude.py` | Differential privacy noise bounds, gradient clipping, sample protection | **PASSED (4/4)** |
-| `test_otp.py` | CSPRNG 6-digit OTP generation, expiry timers, single-use security | **PASSED (3/3)** |
+| `test_otp.py` | CSPRNG 6-digit OTP generation, email OTP dispatch, account lookup, code rejection | **PASSED (6/6)** |
 | `test_ptlm.py` | Predictive peak demand pre-allocation (-45 minutes) | **PASSED (1/1)** |
 | `test_sice.py` | Capacity threshold breach prediction & prorated upgrade synthesis | **PASSED (1/1)** |
 | `test_tig.py` | TIGE genome vector initialization, mutations, and cryptographic hashing | **PASSED (2/2)** |
-| **Total** | **35 Test Cases Across 13 Modules** | **100% PASS** |
+| **Total** | **38 Test Cases Across 13 Modules** | **100% PASS** |
 
 ---
 

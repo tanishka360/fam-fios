@@ -25,7 +25,11 @@ ENV/
 *.key
 
 # Database
-# fam_fios.db
+*.db
+*.db-journal
+
+# Local S3 sandbox output (invoices & model weights from local/test runs)
+backend/app/storage/s3_sandbox/
 
 # IDEs & Editors
 .vscode/
