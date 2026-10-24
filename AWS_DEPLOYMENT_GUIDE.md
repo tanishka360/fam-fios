@@ -69,17 +69,17 @@ If you want a dedicated Linux server or want to use the AWS Free Tier (750 hours
 ### Step 1: Launch an EC2 Instance
 1. In the AWS Console, search for **EC2** and click **Launch Instance**.
 2. **Name**: `FAM-FIOS-Server`
-3. **OS Image**: Select **Ubuntu** (Ubuntu Server 22.04 LTS or 24.04 LTS — Free Tier eligible).
-4. **Instance Type**: Select `t2.micro` (or `t3.micro` / `t3.small`).
+3. **OS Image**: Select **Ubuntu Server 24.04 LTS** (22.04 LTS and Amazon Linux 2023 also work), architecture **64-bit (x86)**.
+4. **Instance Type**: `t3.small` (2 GB RAM) is recommended. `t3.micro` / `t2.micro` (1 GB) work too — the script adds 2 GB swap automatically — but the first build is slower.
 5. **Key pair**: Select *Proceed without a key pair* (if using EC2 Instance Connect) or choose your existing `.pem` key.
 6. **Network Settings (Security Group)**:
-   * Check **Allow SSH traffic from anywhere**.
-   * Check **Allow HTTP traffic from the internet**.
-   * Click **Edit network settings** and add a custom rule:
+   * Check **Allow SSH traffic from anywhere** (needed for EC2 Instance Connect from the browser).
+   * Click **Edit network settings** → **Add security group rule**:
      * **Type**: Custom TCP
      * **Port range**: `8501`
      * **Source**: `0.0.0.0/0` (Anywhere)
-7. Click **Launch Instance**.
+7. **Configure storage**: 8 GB is the minimum; 16 GB gp3 gives the Docker build comfortable headroom.
+8. Click **Launch Instance**.
 
 ### Step 2: Connect to Your Instance
 1. In the EC2 Instances list, select your new instance and click **Connect**.
@@ -93,14 +93,27 @@ curl -sSL https://raw.githubusercontent.com/tanishka360/fam-fios/main/deploy_aws
 ```
 
 ### What This Script Does Automatically:
-1. Installs Docker and Docker Compose on the Ubuntu server.
-2. Clones the latest `fam-fios` repository from GitHub.
-3. Builds and starts the production container in detached mode (`docker-compose up -d --build`).
-4. Verifies the health check probe.
-5. Prints your **live public IP and port**:
+1. Installs Docker and the Docker Compose v2 plugin (`docker compose`), falling back to the official plugin binary if the OS packages don't provide it.
+2. Adds a 2 GB swap file on instances with less than ~3 GB RAM so the build doesn't run out of memory.
+3. Clones the latest `fam-fios` repository into `~/fam-fios` (or fast-forwards it on re-runs).
+4. Builds and starts the production container in detached mode (`docker compose up -d --build`).
+5. Waits up to 2 minutes for the health probe and prints recent container logs if it doesn't come up.
+6. Prints your **live public IP and port**:
    ```text
    http://<YOUR-EC2-PUBLIC-IP>:8501
    ```
+
+**Redeploying after a `git push`:** run the same command again — it pulls the latest code and rebuilds.
+
+**Useful commands on the instance:**
+```bash
+cd ~/fam-fios
+sudo docker compose ps          # container status
+sudo docker compose logs -f     # live logs
+sudo docker compose restart     # restart the app
+```
+
+> **Note:** The public IP changes if you *stop* and *start* the instance. Attach an **Elastic IP** (EC2 → Elastic IPs → Allocate → Associate) for a fixed address.
 
 *(Optional: To map to standard Port 80, simply run: `sudo iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 8501`)*
 
