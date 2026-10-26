@@ -16,6 +16,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # 2. Install essential system dependencies (curl for health probes)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
+    tzdata \
     && rm -rf /var/lib/apt/lists/*
 
 # 3. Create non-root user for security hardening
