@@ -1,5 +1,6 @@
 import sys
 import os
+import html
 import random
 import secrets
 import streamlit as st
@@ -35,11 +36,17 @@ from app.models.events import TenantEvent
 
 # Page Configuration
 st.set_page_config(
-    page_title="FAM-FIOS: Intelligent Gym Operating System",
+    page_title="FAM-FIOS · Fitness Operations Platform",
     page_icon="🏋️‍♂️",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="auto"
 )
+
+from ui_kit import (
+    inject_global_styles, sidebar_brand, nav_label, page_header, section_header,
+    step_indicator, chip, kv_rows, upi_qr_card, membership_pass
+)
+inject_global_styles()
 
 # Initialize database and seed showcase gyms if missing
 init_db()
@@ -434,32 +441,40 @@ CITY_BRANCH_STRUCTURE = {
 }
 
 # --- SIDEBAR NAVIGATION ---
-st.sidebar.markdown("# ⚡ **FAM-FIOS**")
-st.sidebar.markdown("**Federated Adaptive Multi-Tenant Fitness OS**")
-st.sidebar.caption("Patent Invention Disclosure: `24BIT0370-24BIT0390-IDF-01`")
+sidebar_brand("FAM-FIOS", "Fitness Operations Platform")
 st.sidebar.markdown("---")
 
 # --- SIDEBAR AUTHENTICATION STATUS WIDGET ---
 logged_in_user = st.session_state.get("authenticated_user", None)
 if logged_in_user:
-    role_label = "🟢 Member" if logged_in_user.get("role") == "member" else ("🏢 Gym Admin" if logged_in_user.get("role") == "gym_admin" else "🏋️ Trainer")
+    role_label = "Member" if logged_in_user.get("role") == "member" else ("Gym Admin" if logged_in_user.get("role") == "gym_admin" else "Trainer")
     with st.sidebar.container(border=True):
-        st.markdown(f"**👤 {logged_in_user.get('full_name', 'User')}**")
-        st.caption(f"Role: **{role_label}** &nbsp;|&nbsp; {logged_in_user.get('branch', 'Main Branch')}")
-        st.caption(f"📱 `{logged_in_user.get('phone') or logged_in_user.get('email')}`")
-        if st.button("🚪 Log Out", key="sidebar_logout_btn", use_container_width=True):
+        st.markdown(f"**{logged_in_user.get('full_name', 'User')}**")
+        st.caption(f"{role_label} &nbsp;·&nbsp; {logged_in_user.get('branch', 'Main Branch')}")
+        st.caption(f"`{logged_in_user.get('phone') or logged_in_user.get('email')}`")
+        if st.button("Log out", key="sidebar_logout_btn", use_container_width=True):
             st.session_state.pop("authenticated_user", None)
             st.session_state.pop("logged_in_member", None)
             st.session_state.nav_target = "🔐 Member & Admin Login (via OTP)"
             st.rerun()
 else:
     with st.sidebar.container(border=True):
-        st.caption("🔒 **Security Mode: Guest / Visitor**")
-        if st.button("🔐 Log In via Mobile OTP", key="sidebar_login_btn", use_container_width=True):
+        st.caption("Not signed in")
+        if st.button("Sign in with OTP", key="sidebar_login_btn", type="primary", use_container_width=True):
             st.session_state.nav_target = "🔐 Member & Admin Login (via OTP)"
             st.rerun()
 
 st.sidebar.markdown("---")
+
+# Internal portal identifiers (used throughout for routing) and their display labels
+PORTAL_LABELS = {
+    "🔐 Member & Admin Login (via OTP)": "Sign In",
+    "📝 New Member Registration & Payment": "Membership Registration",
+    "🏢 Gym Owner / Admin View": "Operations Console",
+    "🗄️ Central Users & Members Database": "Users & Members",
+    "🏋️ Gym Member / User View": "Member Dashboard",
+    "🔬 Patent & Architecture Deep-Dive": "Architecture"
+}
 
 PORTAL_OPTIONS = [
     "🔐 Member & Admin Login (via OTP)",
@@ -479,11 +494,13 @@ else:
 
 portal_idx = PORTAL_OPTIONS.index(default_portal)
 
+nav_label("Navigation", st.sidebar)
 portal_mode = st.sidebar.radio(
-    "👉 Choose Portal Mode:",
+    "Navigation",
     PORTAL_OPTIONS,
     index=portal_idx,
-    help="Switch between user registration, gym admin management, central users database, member workouts, and patent architecture."
+    format_func=lambda p: PORTAL_LABELS.get(p, p),
+    label_visibility="collapsed"
 )
 st.session_state.current_portal = portal_mode
 
@@ -503,11 +520,13 @@ else:
 
 tenant_idx = list(tenant_dict.keys()).index(default_tenant_label) if default_tenant_label in tenant_dict else 0
 
+nav_label("Facility", st.sidebar)
 selected_tenant_label = st.sidebar.selectbox(
-    "🏢 Active Facility Filter:",
+    "Active facility",
     list(tenant_dict.keys()),
     index=tenant_idx,
-    help="Filter data for a specific gym."
+    help="Scopes the Operations Console and Member Dashboard to one gym.",
+    label_visibility="collapsed"
 )
 st.session_state.selected_tenant_label = selected_tenant_label
 active_tenant_id = tenant_dict[selected_tenant_label]
@@ -516,44 +535,48 @@ sub = active_genome.subscription
 usage = active_genome.usage
 
 st.sidebar.markdown("---")
-with st.sidebar.expander("📖 Quick Patent Guide (1-Minute Read)"):
+with st.sidebar.expander("Platform engines"):
     st.markdown("""
-    - **TIG**: Models each gym as an executable digital object with evolving capacity and server limits.
-    - **SICE**: Automatically tracks new signups and calculates fair prorated upgrade fees before gym capacity runs out.
-    - **PTLM**: Predicts morning/evening rush hours and spins up servers 45 min in advance.
-    - **FAFIE**: Multi-gym collaborative AI workout recommendations without sharing member private data.
-    - **ACVE**: The security firewall that prevents any gym from seeing another gym's records.
+    - **TIG**: Models each gym as a digital object with evolving capacity and server limits.
+    - **SICE**: Tracks signups and calculates prorated upgrade fees before capacity runs out.
+    - **PTLM**: Predicts morning and evening rush hours and scales servers 45 minutes ahead.
+    - **FAFIE**: Collaborative workout recommendations across gyms without sharing member data.
+    - **ACVE**: Isolation firewall that keeps each gym's records private from every other gym.
     """)
 
-if st.sidebar.button("🔄 Reset Database to Factory Defaults", use_container_width=True):
-    db_store.reset()
-    from app.main import startup_db_and_seed
-    startup_db_and_seed()
-    st.sidebar.success("Database re-seeded with Apex, IronCore, and Titan!")
-    st.rerun()
+with st.sidebar.expander("System administration"):
+    st.caption("Restores the seeded gyms (Apex, IronCore, Titan) and clears all other data.")
+    if st.button("Reset database to defaults", use_container_width=True):
+        db_store.reset()
+        from app.main import startup_db_and_seed
+        startup_db_and_seed()
+        st.sidebar.success("Database restored to default seed data.")
+        st.rerun()
+
+st.sidebar.caption("Invention Disclosure 24BIT0370-24BIT0390-IDF-01 · VIT SCORE")
 
 # ==============================================================================
 # 0. SECURE OTP LOGIN & AUTHENTICATION PORTAL (NEW FEATURE!)
 # ==============================================================================
 if portal_mode == "🔐 Member & Admin Login (via OTP)":
-    st.title("🔐 Secure Member & Admin Login via OTP")
-    st.markdown("""
-    Sign in to your fitness account or gym command center without remembering passwords. 
-    Enter your registered **Mobile Phone Number** or **Email Address**, and we'll dispatch a 6-digit verification code.
-    """)
-    
+    page_header(
+        "Sign in to FAM-FIOS",
+        "Members, trainers and gym administrators sign in without a password. Enter your registered mobile number or email and we'll send you a 6-digit verification code.",
+        eyebrow="Secure access"
+    )
+
     # Check if already logged in
     current_auth = st.session_state.get("authenticated_user", None)
     if current_auth:
-        st.success(f"✅ You are currently authenticated as **{current_auth.get('full_name')}** ({current_auth.get('role').title()})!")
+        st.success(f"You're signed in as **{current_auth.get('full_name')}** ({current_auth.get('role').replace('_', ' ').title()}).")
         col_logged1, col_logged2 = st.columns(2)
         with col_logged1:
             dest_portal = "🏋️ Gym Member / User View" if current_auth.get("role") == "member" else "🏢 Gym Owner / Admin View"
-            if st.button(f"👉 Proceed to My Portal ({dest_portal})", type="primary", use_container_width=True):
+            if st.button(f"Continue to {PORTAL_LABELS.get(dest_portal, dest_portal)}", type="primary", use_container_width=True):
                 st.session_state.nav_target = dest_portal
                 st.rerun()
         with col_logged2:
-            if st.button("🚪 Log Out / Switch Account", use_container_width=True):
+            if st.button("Sign out / switch account", use_container_width=True):
                 st.session_state.pop("authenticated_user", None)
                 st.session_state.pop("logged_in_member", None)
                 st.session_state.pop("active_otp_record", None)
@@ -568,117 +591,22 @@ if portal_mode == "🔐 Member & Admin Login (via OTP)":
         
         with col_login_main:
             if st.session_state.otp_step == "request":
-                st.subheader("1️⃣ Enter Your Registered Mobile Number or Email")
-                
-                # Unified SMS & Email Gateway Configuration Expander
-                with st.expander("🌐 **Real-Time Dispatch Gateway Configuration (SMS & Email)**", expanded=False):
-                    tab_gw_email, tab_gw_sms = st.tabs(["📧 Email Gateway (SMTP / Gmail)", "📲 SMS Gateway (AWS Amazon SNS)"])
+                section_header("Enter your mobile number or email", caption="We'll send a one-time code to verify it's you.", step=1)
 
-                    with tab_gw_email:
-                        email_status = email_service.check_email_configuration(st.session_state.get("custom_smtp_credentials"))
-                        if email_status["configured"]:
-                            st.success(f"🟢 **SMTP Live Email Active**: Connected via `{email_status['smtp_host']}:{email_status['smtp_port']}` (Account: `{email_status['masked_user']}`). Real verification emails will be delivered directly to the entered email address!")
-                        else:
-                            st.warning("🟡 **Email Gateway Not Configured**: Email OTP login is unavailable until SMTP is set up. To deliver verification emails to a Gmail/Outlook inbox, enter your SMTP details below:")
-
-                        c_em1, c_em2 = st.columns(2)
-                        with c_em1:
-                            smtp_host_in = st.text_input("SMTP Host", value=st.session_state.get("custom_smtp_credentials", {}).get("smtp_host", "smtp.gmail.com"), placeholder="smtp.gmail.com")
-                            smtp_user_in = st.text_input("SMTP Username / Email", value=st.session_state.get("custom_smtp_credentials", {}).get("smtp_user", ""), placeholder="yourname@gmail.com")
-                        with c_em2:
-                            smtp_port_in = st.number_input("SMTP Port", value=int(st.session_state.get("custom_smtp_credentials", {}).get("smtp_port", 587)), min_value=25, max_value=65535)
-                            smtp_pass_in = st.text_input("SMTP Password / App Password", value=st.session_state.get("custom_smtp_credentials", {}).get("smtp_password", ""), type="password", placeholder="16-character Google App Password")
-
-                        c_em_save, c_em_reset = st.columns(2)
-                        with c_em_save:
-                            if st.button("💾 Apply Email Credentials", use_container_width=True, key="btn_save_smtp"):
-                                if smtp_user_in.strip() and smtp_pass_in.strip():
-                                    st.session_state.custom_smtp_credentials = {
-                                        "smtp_host": smtp_host_in.strip(),
-                                        "smtp_port": int(smtp_port_in),
-                                        "smtp_user": smtp_user_in.strip(),
-                                        "smtp_password": smtp_pass_in.strip(),
-                                        "from_email": smtp_user_in.strip()
-                                    }
-                                    st.toast("✅ SMTP credentials saved for this session! Real emails will be sent.", icon="📧")
-                                    st.rerun()
-                                else:
-                                    st.warning("⚠️ Please provide both Username and App Password.")
-                        with c_em_reset:
-                            if st.button("🔄 Reset to Email Simulation", use_container_width=True, key="btn_reset_smtp"):
-                                st.session_state.pop("custom_smtp_credentials", None)
-                                st.toast("Reset to simulation sandbox mode.", icon="🔄")
-                                st.rerun()
-
-                    with tab_gw_sms:
-                        aws_status = aws_sns_service.check_sns_configuration(st.session_state.get("custom_aws_credentials"))
-                        if aws_status["configured"]:
-                            source_note = f", via `{aws_status['source']}`" if aws_status.get("source") else ""
-                            st.success(f"🟢 **Amazon SNS Active**: AWS Region `{aws_status['region']}` (Key: `{aws_status['masked_key']}`{source_note}). OTPs are sent by SMS to the entered mobile number.")
-                        else:
-                            st.warning("🟡 **SMS Gateway Not Configured**: No AWS credentials found, so OTPs cannot be sent. On EC2, attach an IAM instance profile with SNS publish permission (e.g. LabInstanceProfile), or enter credentials below:")
-
-                        col_aws_k1, col_aws_k2 = st.columns(2)
-                        with col_aws_k1:
-                            aws_key_input = st.text_input("AWS Access Key ID", value=st.session_state.get("custom_aws_credentials", {}).get("aws_access_key_id", ""), type="password", placeholder="e.g. AKIAIOSFODNN7EXAMPLE")
-                            aws_reg_input = st.selectbox("AWS Region", ["us-east-1 (N. Virginia)", "ap-south-1 (Mumbai)", "eu-west-1 (Ireland)", "ap-southeast-1 (Singapore)"], index=0)
-                            aws_tok_input = st.text_input("AWS Session Token (optional)", value=st.session_state.get("custom_aws_credentials", {}).get("aws_session_token", ""), type="password", placeholder="Required for temporary / Learner Lab keys")
-                        with col_aws_k2:
-                            aws_sec_input = st.text_input("AWS Secret Access Key", value=st.session_state.get("custom_aws_credentials", {}).get("aws_secret_access_key", ""), type="password", placeholder="e.g. wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY")
-                            col_save_aws, col_reset_aws = st.columns([1, 1])
-                            with col_save_aws:
-                                if st.button("💾 Apply AWS Keys", use_container_width=True, key="btn_save_aws"):
-                                    reg = aws_reg_input.split(" ")[0]
-                                    if aws_key_input.strip() and aws_sec_input.strip():
-                                        st.session_state.custom_aws_credentials = {
-                                            "aws_access_key_id": aws_key_input.strip(),
-                                            "aws_secret_access_key": aws_sec_input.strip(),
-                                            "aws_session_token": aws_tok_input.strip(),
-                                            "region_name": reg
-                                        }
-                                        st.toast("✅ AWS SNS credentials configured for this session!", icon="☁️")
-                                        st.rerun()
-                                    else:
-                                        st.warning("⚠️ Please provide both Access Key ID and Secret Access Key.")
-                            with col_reset_aws:
-                                if st.button("🔄 Clear Entered AWS Keys", use_container_width=True, key="btn_reset_aws"):
-                                    st.session_state.pop("custom_aws_credentials", None)
-                                    st.toast("Entered keys cleared; using the server's default AWS credentials.", icon="🔄")
-                                    st.rerun()
-
-                # Demo Personas Quick Select
-                st.markdown("**⚡ Quick-Select Demo Persona (1-Click Test):**")
-                c_demo1, c_demo2, c_demo3, c_demo4 = st.columns(4)
-                with c_demo1:
-                    if st.button("👤 Tanishka Shah\n(Titan Member)", use_container_width=True):
-                        st.session_state.login_input_ident = "+91 78880 85822"
-                        st.rerun()
-                with c_demo2:
-                    if st.button("👤 Sarah Jenkins\n(Apex Member)", use_container_width=True):
-                        st.session_state.login_input_ident = "+91 98233 30002"
-                        st.rerun()
-                with c_demo3:
-                    if st.button("🏢 Titan Executive\n(Gym Admin)", use_container_width=True):
-                        st.session_state.login_input_ident = "+91 98231 10001"
-                        st.rerun()
-                with c_demo4:
-                    if st.button("🏋️ Coach Alex\n(IronCore Trainer)", use_container_width=True):
-                        st.session_state.login_input_ident = "+91 98232 20002"
-                        st.rerun()
-                        
-                default_ident = st.session_state.get("login_input_ident", "")
+                # A sample-account button below queues its number here; apply it before the widget renders
+                if "login_input_ident" in st.session_state:
+                    st.session_state.login_ident_field = st.session_state.pop("login_input_ident")
                 user_ident = st.text_input(
-                    "📱 Mobile Phone Number or ✉️ Email Address:",
-                    value=default_ident,
-                    placeholder="e.g. +91 98220 54321 or your.email@gmail.com",
+                    "Mobile number or email",
+                    placeholder="+91 98220 54321 or name@example.com",
                     key="login_ident_field"
                 )
-                
-                send_otp_btn = st.button("📲 Send 6-Digit Verification OTP", type="primary", use_container_width=True)
-                
+
+                send_otp_btn = st.button("Send verification code", type="primary", use_container_width=True)
+
                 if send_otp_btn:
                     if not user_ident.strip():
-                        st.error("⚠️ Please enter a valid mobile number or email address.")
+                        st.error("Please enter a valid mobile number or email address.")
                     else:
                         clean_ident = user_ident.strip()
                         # Generate OTP with optional AWS and SMTP credentials
@@ -692,7 +620,7 @@ if portal_mode == "🔐 Member & Admin Login (via OTP)":
                         
                         if not otp_rec.get("delivered"):
                             st.error(
-                                f"❌ Couldn't send the OTP by {otp_rec.get('channel', 'SMS')}. Please try again in a moment.\n\n"
+                                f"Couldn't send the verification code by {otp_rec.get('channel', 'SMS')}. Please try again in a moment.\n\n"
                                 f"Details: {otp_rec.get('dispatch_error')}"
                             )
                         else:
@@ -705,6 +633,106 @@ if portal_mode == "🔐 Member & Admin Login (via OTP)":
                             st.session_state.entered_otp_val = ""
                             st.rerun()
                         
+
+                # Sample accounts (fill the field above)
+                st.markdown("")
+                st.caption("Sample accounts — click to fill in the number")
+                c_demo1, c_demo2 = st.columns(2)
+                c_demo3, c_demo4 = st.columns(2)
+                with c_demo1:
+                    if st.button("Tanishka Shah · Titan member", use_container_width=True):
+                        st.session_state.login_input_ident = "+91 78880 85822"
+                        st.rerun()
+                with c_demo2:
+                    if st.button("Sarah Jenkins · Apex member", use_container_width=True):
+                        st.session_state.login_input_ident = "+91 98233 30002"
+                        st.rerun()
+                with c_demo3:
+                    if st.button("Titan Executive · Gym admin", use_container_width=True):
+                        st.session_state.login_input_ident = "+91 98231 10001"
+                        st.rerun()
+                with c_demo4:
+                    if st.button("Coach Alex · IronCore trainer", use_container_width=True):
+                        st.session_state.login_input_ident = "+91 98232 20002"
+                        st.rerun()
+
+                # Unified SMS & Email Gateway Configuration Expander
+                st.markdown("")
+                with st.expander("Delivery settings (SMS & email)", expanded=False):
+                    tab_gw_email, tab_gw_sms = st.tabs(["Email (SMTP)", "SMS (Amazon SNS)"])
+
+                    with tab_gw_email:
+                        email_status = email_service.check_email_configuration(st.session_state.get("custom_smtp_credentials"))
+                        if email_status["configured"]:
+                            st.success(f"**Email delivery active** — `{email_status['smtp_host']}:{email_status['smtp_port']}` (account `{email_status['masked_user']}`). Codes are emailed to the address entered.")
+                        else:
+                            st.warning("**Email delivery not configured.** Email sign-in is unavailable until SMTP is set up. Enter your SMTP details below:")
+
+                        c_em1, c_em2 = st.columns(2)
+                        with c_em1:
+                            smtp_host_in = st.text_input("SMTP Host", value=st.session_state.get("custom_smtp_credentials", {}).get("smtp_host", "smtp.gmail.com"), placeholder="smtp.gmail.com")
+                            smtp_user_in = st.text_input("SMTP Username / Email", value=st.session_state.get("custom_smtp_credentials", {}).get("smtp_user", ""), placeholder="yourname@gmail.com")
+                        with c_em2:
+                            smtp_port_in = st.number_input("SMTP Port", value=int(st.session_state.get("custom_smtp_credentials", {}).get("smtp_port", 587)), min_value=25, max_value=65535)
+                            smtp_pass_in = st.text_input("SMTP Password / App Password", value=st.session_state.get("custom_smtp_credentials", {}).get("smtp_password", ""), type="password", placeholder="16-character Google App Password")
+
+                        c_em_save, c_em_reset = st.columns(2)
+                        with c_em_save:
+                            if st.button("Save email settings", use_container_width=True, key="btn_save_smtp"):
+                                if smtp_user_in.strip() and smtp_pass_in.strip():
+                                    st.session_state.custom_smtp_credentials = {
+                                        "smtp_host": smtp_host_in.strip(),
+                                        "smtp_port": int(smtp_port_in),
+                                        "smtp_user": smtp_user_in.strip(),
+                                        "smtp_password": smtp_pass_in.strip(),
+                                        "from_email": smtp_user_in.strip()
+                                    }
+                                    st.toast("Email settings saved for this session.", icon="✅")
+                                    st.rerun()
+                                else:
+                                    st.warning("Please provide both a username and an app password.")
+                        with c_em_reset:
+                            if st.button("Clear email settings", use_container_width=True, key="btn_reset_smtp"):
+                                st.session_state.pop("custom_smtp_credentials", None)
+                                st.toast("Email settings cleared.", icon="🔄")
+                                st.rerun()
+
+                    with tab_gw_sms:
+                        aws_status = aws_sns_service.check_sns_configuration(st.session_state.get("custom_aws_credentials"))
+                        if aws_status["configured"]:
+                            source_note = f", via `{aws_status['source']}`" if aws_status.get("source") else ""
+                            st.success(f"**SMS delivery active** — Amazon SNS in `{aws_status['region']}` (key `{aws_status['masked_key']}`{source_note}). Codes are texted to the number entered.")
+                        else:
+                            st.warning("**SMS delivery not configured.** No AWS credentials were found. On EC2, attach an IAM instance profile with SNS publish permission (e.g. LabInstanceProfile), or enter credentials below:")
+
+                        col_aws_k1, col_aws_k2 = st.columns(2)
+                        with col_aws_k1:
+                            aws_key_input = st.text_input("AWS Access Key ID", value=st.session_state.get("custom_aws_credentials", {}).get("aws_access_key_id", ""), type="password", placeholder="e.g. AKIAIOSFODNN7EXAMPLE")
+                            aws_reg_input = st.selectbox("AWS Region", ["us-east-1 (N. Virginia)", "ap-south-1 (Mumbai)", "eu-west-1 (Ireland)", "ap-southeast-1 (Singapore)"], index=0)
+                            aws_tok_input = st.text_input("AWS Session Token (optional)", value=st.session_state.get("custom_aws_credentials", {}).get("aws_session_token", ""), type="password", placeholder="Required for temporary / Learner Lab keys")
+                        with col_aws_k2:
+                            aws_sec_input = st.text_input("AWS Secret Access Key", value=st.session_state.get("custom_aws_credentials", {}).get("aws_secret_access_key", ""), type="password", placeholder="e.g. wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY")
+                            col_save_aws, col_reset_aws = st.columns([1, 1])
+                            with col_save_aws:
+                                if st.button("Save AWS keys", use_container_width=True, key="btn_save_aws"):
+                                    reg = aws_reg_input.split(" ")[0]
+                                    if aws_key_input.strip() and aws_sec_input.strip():
+                                        st.session_state.custom_aws_credentials = {
+                                            "aws_access_key_id": aws_key_input.strip(),
+                                            "aws_secret_access_key": aws_sec_input.strip(),
+                                            "aws_session_token": aws_tok_input.strip(),
+                                            "region_name": reg
+                                        }
+                                        st.toast("AWS keys saved for this session.", icon="✅")
+                                        st.rerun()
+                                    else:
+                                        st.warning("Please provide both an Access Key ID and a Secret Access Key.")
+                            with col_reset_aws:
+                                if st.button("Clear AWS keys", use_container_width=True, key="btn_reset_aws"):
+                                    st.session_state.pop("custom_aws_credentials", None)
+                                    st.toast("Entered keys cleared; using the server's default AWS credentials.", icon="🔄")
+                                    st.rerun()
+
             elif st.session_state.otp_step == "verify":
                 otp_rec = st.session_state.get("active_otp_record", {})
                 if not otp_rec:
@@ -714,44 +742,24 @@ if portal_mode == "🔐 Member & Admin Login (via OTP)":
                 
                 channel = otp_rec.get("channel", "SMS")
 
-                st.subheader("2️⃣ Enter 6-Digit Verification Code")
+                section_header("Enter the 6-digit code", step=2)
                 if channel == "Email":
-                    st.success(f"📨 We've emailed a 6-digit OTP to **{otp_rec.get('masked_target', '')}**. It's valid for 5 minutes.")
+                    st.success(f"We've emailed a 6-digit code to **{otp_rec.get('masked_target', '')}**. It expires in 5 minutes.")
                 else:
-                    st.success(f"📲 We've sent a 6-digit OTP by SMS to **{otp_rec.get('masked_target', '')}**. It's valid for 5 minutes.")
-                st.caption("Didn't get it? Messages can take up to a minute. Check the number is correct, then use Resend.")
-
-                if st.button("🔁 Resend New OTP", use_container_width=True):
-                    custom_aws_creds = st.session_state.get("custom_aws_credentials")
-                    custom_smtp_creds = st.session_state.get("custom_smtp_credentials")
-                    new_rec = generate_login_otp(
-                        otp_rec.get('raw_identifier', ''),
-                        custom_aws_credentials=custom_aws_creds,
-                        custom_smtp_credentials=custom_smtp_creds
-                    )
-                    if new_rec.get("delivered"):
-                        new_rec["account"] = matched_acc
-                        st.session_state.active_otp_record = new_rec
-                        st.session_state.entered_otp_val = ""
-                        st.toast(f"📨 New OTP sent to {new_rec.get('masked_target', '')}!", icon="📲")
-                        st.rerun()
-                    else:
-                        st.error(f"❌ Couldn't resend the OTP. Please try again in a moment.\n\nDetails: {new_rec.get('dispatch_error')}")
-                        
+                    st.success(f"We've texted a 6-digit code to **{otp_rec.get('masked_target', '')}**. It expires in 5 minutes.")
                 curr_otp = st.session_state.get("entered_otp_val", "")
-                entered_otp = st.text_input("Enter 6-Digit OTP:", value=curr_otp, max_chars=6, placeholder="e.g. 123456", key="otp_input_field")
-                
-                verify_btn = st.button("🔓 Verify OTP & Log In", type="primary", use_container_width=True)
-                
+                entered_otp = st.text_input("Verification code", value=curr_otp, max_chars=6, placeholder="6-digit code", key="otp_input_field")
+
+                verify_btn = st.button("Verify and sign in", type="primary", use_container_width=True)
+
                 if verify_btn:
                     if not entered_otp.strip():
-                        st.error("⚠️ Please enter the 6-digit OTP code.")
+                        st.error("Please enter the 6-digit code.")
                     else:
                         is_valid, msg = verify_login_otp(otp_rec["raw_identifier"], entered_otp.strip())
                         if not is_valid:
-                            st.error(f"❌ {msg}")
+                            st.error(msg)
                         else:
-                            st.balloons()
                             # Build authenticated user dictionary
                             if matched_acc:
                                 user_session = {
@@ -813,27 +821,46 @@ if portal_mode == "🔐 Member & Admin Login (via OTP)":
                                 
                             st.session_state.otp_step = "request"
                             st.session_state.pop("active_otp_record", None)
-                            st.toast(f"🎉 Login Successful! Welcome back, {user_session['full_name']}!", icon="✅")
+                            st.toast(f"Signed in. Welcome back, {user_session['full_name']}.", icon="✅")
                             st.rerun()
-                            
-                st.markdown("")
-                if st.button("⬅️ Back to Enter Different Number / Email"):
-                    st.session_state.otp_step = "request"
-                    st.session_state.pop("active_otp_record", None)
-                    st.session_state.entered_otp_val = ""
-                    st.rerun()
+
+                st.caption("Didn't get it? Messages can take up to a minute. Check the number is correct, then resend.")
+                col_resend, col_back = st.columns(2)
+                with col_resend:
+                    if st.button("Resend code", use_container_width=True):
+                        custom_aws_creds = st.session_state.get("custom_aws_credentials")
+                        custom_smtp_creds = st.session_state.get("custom_smtp_credentials")
+                        new_rec = generate_login_otp(
+                            otp_rec.get('raw_identifier', ''),
+                            custom_aws_credentials=custom_aws_creds,
+                            custom_smtp_credentials=custom_smtp_creds
+                        )
+                        if new_rec.get("delivered"):
+                            new_rec["account"] = matched_acc
+                            st.session_state.active_otp_record = new_rec
+                            st.session_state.entered_otp_val = ""
+                            st.toast(f"New code sent to {new_rec.get('masked_target', '')}.", icon="✅")
+                            st.rerun()
+                        else:
+                            st.error(f"Couldn't resend the code. Please try again in a moment.\n\nDetails: {new_rec.get('dispatch_error')}")
+                with col_back:
+                    if st.button("Use a different number or email", use_container_width=True):
+                        st.session_state.otp_step = "request"
+                        st.session_state.pop("active_otp_record", None)
+                        st.session_state.entered_otp_val = ""
+                        st.rerun()
 
         with col_login_info:
-            st.markdown("### 🛡️ **Zero-Password OTP Security**")
             with st.container(border=True):
+                section_header("Passwordless security", level=4)
                 st.markdown("""
-                - 🔒 **Cryptographic 6-Digit Token**: Generated using CSPRNG (`secrets.randbelow`) and validated using constant-time HMAC comparison to eliminate timing attacks.
-                - ⏱️ **Time-Bound Validity**: OTPs expire automatically after **5 minutes**.
-                - ⚡ **Single-Use Invalidation**: The OTP is consumed and deleted from memory instantly upon successful verification.
-                - 🏢 **Multi-Role Single Sign-On**:
-                  - **Members** ➔ Instant pass, gym check-in, workout tracking.
-                  - **Admins** ➔ Franchise roster, capacity scaling, billing metrics.
-                  - **Trainers** ➔ Client assignment & plateau detector.
+                - **Cryptographic 6-digit code** — generated with a CSPRNG (`secrets.randbelow`) and checked with a constant-time comparison to prevent timing attacks.
+                - **Short-lived** — codes expire after **5 minutes**.
+                - **Single use** — a code is deleted the moment it's verified.
+                - **One sign-in for every role**
+                  - **Members** — digital pass, check-in, workout tracking
+                  - **Admins** — franchise roster, capacity planning, billing
+                  - **Trainers** — client assignment and plateau detection
                 """)
 
 # ==============================================================================
@@ -847,36 +874,26 @@ elif portal_mode == "📝 New Member Registration & Payment":
     # STAGE 1: REGISTRATION DETAILS & PLAN SELECTION
     # ==========================================================================
     if st.session_state.checkout_stage == "form":
-        st.title("📝 Public Member Registration & Membership Pass")
-        st.markdown("""
-        Welcome! Choose your preferred gym facility and area, pick your membership duration, 
-        and proceed to payment. **Once payment is processed, you are automatically registered in the Gym Admin's management system in real time!**
-        """)
-        
-        # Step progress indicator
-        st.markdown("""
-        <div style="background-color: #1E293B; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #334155;">
-            <span style="color: #38BDF8; font-weight: bold;">📍 Step 1: Membership & Facility Details (ACTIVE)</span> 
-            <span style="color: #64748B; margin: 0 10px;">➔</span> 
-            <span style="color: #94A3B8;">💳 Step 2: Dedicated Payment Gateway</span> 
-            <span style="color: #64748B; margin: 0 10px;">➔</span> 
-            <span style="color: #94A3B8;">🎟️ Step 3: Digital Pass & Connected Pages</span>
-        </div>
-        """, unsafe_allow_html=True)
+        page_header(
+            "Become a member",
+            "Choose a gym and branch, pick a plan and pay securely. Your membership is activated and added to the gym's roster as soon as payment completes.",
+            eyebrow="Membership registration"
+        )
+        step_indicator(["Membership details", "Payment", "Digital pass"], 0)
 
         reg_col1, reg_col2 = st.columns([3, 2])
 
         with reg_col1:
-            st.subheader("1️⃣ Select City & Specific Franchise Branch")
+            section_header("Choose your gym", caption="Select a city, gym network and branch.", step=1)
             col_city, col_brand = st.columns(2)
             with col_city:
-                selected_city = st.selectbox("🏙️ Step 1: Select City:", list(CITY_BRANCH_STRUCTURE.keys()), key="form_city")
+                selected_city = st.selectbox("City", list(CITY_BRANCH_STRUCTURE.keys()), key="form_city")
 
             available_gym_brands = CITY_BRANCH_STRUCTURE[selected_city]
             brand_options = {brand_info["brand_name"]: tid for tid, brand_info in available_gym_brands.items()}
 
             with col_brand:
-                selected_brand_name = st.selectbox("🏢 Step 2: Select Gym Brand / Network:", list(brand_options.keys()), key="form_brand")
+                selected_brand_name = st.selectbox("Gym network", list(brand_options.keys()), key="form_brand")
 
             chosen_tenant_id = brand_options[selected_brand_name]
             brand_data = available_gym_brands[chosen_tenant_id]
@@ -884,7 +901,7 @@ elif portal_mode == "📝 New Member Registration & Payment":
             branch_dict = {f"{b['branch_name']} ({b['area']})": b for b in branch_list}
 
             selected_branch_label = st.selectbox(
-                f"📍 Step 3: Choose Franchise Branch in {selected_city} ({len(branch_list)} available):",
+                f"Branch in {selected_city} ({len(branch_list)} available)",
                 list(branch_dict.keys()),
                 help=f"Select from {len(branch_list)} distinct {selected_brand_name} franchises in {selected_city}.",
                 key="form_branch"
@@ -896,17 +913,25 @@ elif portal_mode == "📝 New Member Registration & Payment":
             remaining_slots = max(0, chosen_sub.max_members - chosen_sub.active_members)
 
             # Dynamic Branch Facility Card
-            st.info(f"""
-            🏢 **{chosen_genome.gym_name} — {selected_branch['branch_name']}**  
-            - 🏙️ **City & Area:** {selected_city} — {selected_branch['area']}  
-            - 📍 **Address:** {selected_branch['address']}  
-            - 📞 **Branch Phone:** `{selected_branch['phone']}`  
-            - 🕒 **Operating Hours:** `{selected_branch['timing']}`  
-            - 🏆 **Facility Tier:** `{chosen_sub.tier} Plan` ({remaining_slots} membership spots remaining)  
-            - ✨ **Amenities:** {selected_branch['amenities']}
-            """)
+            with st.container(border=True):
+                st.markdown(f"**{chosen_genome.gym_name} — {selected_branch['branch_name']}**")
+                fc1, fc2 = st.columns(2)
+                with fc1:
+                    st.caption("Location")
+                    st.write(f"{selected_city} — {selected_branch['area']}")
+                    st.caption("Address")
+                    st.write(selected_branch['address'])
+                    st.caption("Phone")
+                    st.write(selected_branch['phone'])
+                with fc2:
+                    st.caption("Opening hours")
+                    st.write(selected_branch['timing'])
+                    st.caption("Facility tier")
+                    st.write(f"{chosen_sub.tier} plan · {remaining_slots} membership spots remaining")
+                    st.caption("Amenities")
+                    st.write(selected_branch['amenities'])
 
-            st.subheader("2️⃣ Member Personal Information")
+            section_header("Your details", step=2)
             u_name = st.text_input("Full Name", placeholder="e.g. Siddharth Verma", key="input_u_name")
             u_email = st.text_input("Email Address", placeholder="e.g. siddharth.verma@gmail.com", key="input_u_email")
             u_phone = st.text_input("Mobile Number", placeholder="e.g. +91 98220 54321", key="input_u_phone")
@@ -928,9 +953,9 @@ elif portal_mode == "📝 New Member Registration & Payment":
                 key="input_u_goal"
             )
 
-            st.subheader("3️⃣ Choose Membership Plan")
+            section_header("Choose a plan", step=3)
             plan_choice = st.radio(
-                "Select Plan Duration:",
+                "Plan duration",
                 [
                     "1 Month Standard Access — ₹1,499",
                     "3 Months Quarterly (Save 15%) — ₹3,799",
@@ -944,32 +969,39 @@ elif portal_mode == "📝 New Member Registration & Payment":
             total_payable = round(base_price + gst_amount, 2)
 
         with reg_col2:
-            st.subheader("4️⃣ Checkout & Payment Gateway")
+            section_header("Checkout", step=4)
             with st.container(border=True):
-                st.markdown("#### 🧾 **Order Summary**")
-                st.write(f"**Gym Network:** {chosen_genome.gym_name}")
-                st.write(f"**City:** {selected_city}")
-                st.write(f"**Franchise Branch:** {selected_branch['branch_name']}")
-                st.write(f"**Branch Address:** {selected_branch['address']}")
-                st.write(f"**Plan Duration:** {plan_choice.split('—')[0].strip()}")
-                st.write(f"Base Membership Fee: **₹{base_price:,.2f}**")
-                st.write(f"GST (18%): **₹{gst_amount:,.2f}**")
+                section_header("Order summary", level=4)
+                kv_rows([
+                    ("Gym network", chosen_genome.gym_name),
+                    ("City", selected_city),
+                    ("Branch", selected_branch['branch_name']),
+                    ("Address", selected_branch['address']),
+                    ("Plan", plan_choice.split('—')[0].strip()),
+                ])
                 st.markdown("---")
-                st.markdown(f"### **Total Amount: ₹{total_payable:,.2f}**")
+                kv_rows([
+                    ("Membership fee", f"₹{base_price:,.2f}"),
+                    ("GST (18%)", f"₹{gst_amount:,.2f}"),
+                ], total=("Total due", f"₹{total_payable:,.2f}"))
 
-                st.markdown("#### **Preferred Payment Mode**")
+                st.markdown("")
+                section_header("Payment method", level=4)
+                pay_method_display = {
+                    "📱 UPI Gateway (Google Pay / PhonePe / Paytm / QR)": "UPI — Google Pay, PhonePe, Paytm or QR",
+                    "💳 Credit / Debit Card (with 3D Secure OTP)": "Credit / Debit Card (3-D Secure)",
+                    "🏛️ Net Banking Gateway (SBI, HDFC, ICICI, Axis)": "Net Banking — SBI, HDFC, ICICI, Axis",
+                    "⚡ Instant 1-Click Fast Checkout (Demo Mode)": "Express Approval (Test Mode)"
+                }
                 pay_method = st.radio(
-                    "Choose payment gateway method to open:",
-                    [
-                        "📱 UPI Gateway (Google Pay / PhonePe / Paytm / QR)",
-                        "💳 Credit / Debit Card (with 3D Secure OTP)",
-                        "🏛️ Net Banking Gateway (SBI, HDFC, ICICI, Axis)",
-                        "⚡ Instant 1-Click Fast Checkout (Demo Mode)"
-                    ],
-                    key="input_pay_method"
+                    "Payment method",
+                    list(pay_method_display.keys()),
+                    format_func=lambda o: pay_method_display.get(o, o),
+                    key="input_pay_method",
+                    label_visibility="collapsed"
                 )
 
-                st.caption("🔒 256-Bit SSL Encrypted. You will proceed to a dedicated payment gateway on the next page.")
+                st.caption("Secured with 256-bit TLS encryption. You'll complete payment on the next screen.")
 
                 u_name_clean = (u_name or st.session_state.get("input_u_name", "")).strip()
                 u_email_clean = (u_email or st.session_state.get("input_u_email", "")).strip()
@@ -981,7 +1013,7 @@ elif portal_mode == "📝 New Member Registration & Payment":
                 elif not u_email_clean:
                     u_email_clean = "member@fitness.fam"
 
-                proceed_btn = st.button("💳 Proceed to Payment Gateway ➡️", type="primary", use_container_width=True)
+                proceed_btn = st.button("Continue to payment", type="primary", use_container_width=True)
 
                 if proceed_btn:
                     missing_fields = []
@@ -991,9 +1023,9 @@ elif portal_mode == "📝 New Member Registration & Payment":
                         missing_fields.append("Mobile Number")
 
                     if missing_fields:
-                        st.error(f"⚠️ Missing required info: Please enter your {', '.join(missing_fields)} before proceeding.")
+                        st.error(f"Please enter your {' and '.join(missing_fields)} to continue.")
                     elif chosen_sub.active_members >= chosen_sub.max_members:
-                        st.error(f"⚠️ Registration Blocked by SICE: {chosen_genome.gym_name} is currently at maximum capacity ({chosen_sub.active_members}/{chosen_sub.max_members}). Upgrade required!")
+                        st.error(f"{chosen_genome.gym_name} is at full capacity ({chosen_sub.active_members}/{chosen_sub.max_members} members), so new registrations are paused until the gym upgrades its plan.")
                     else:
                         st.session_state.checkout_data = {
                             "tenant_id": chosen_tenant_id,
@@ -1024,39 +1056,33 @@ elif portal_mode == "📝 New Member Registration & Payment":
     # ==========================================================================
     elif st.session_state.checkout_stage == "gateway":
         c_data = st.session_state.checkout_data
-        st.title("🔒 FAM-FIOS Secure Payment Gateway")
-        
-        # Step progress indicator
-        st.markdown("""
-        <div style="background-color: #1E293B; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #334155;">
-            <span style="color: #10B981; font-weight: bold;">✅ Step 1: Details Confirmed</span> 
-            <span style="color: #64748B; margin: 0 10px;">➔</span> 
-            <span style="color: #38BDF8; font-weight: bold;">💳 Step 2: Payment Gateway & Authentication (ACTIVE)</span> 
-            <span style="color: #64748B; margin: 0 10px;">➔</span> 
-            <span style="color: #94A3B8;">🎟️ Step 3: Digital Pass & Connected Pages</span>
-        </div>
-        """, unsafe_allow_html=True)
+        page_header(
+            "Complete your payment",
+            "Choose how you'd like to pay. Your membership activates as soon as the payment is authorized.",
+            eyebrow="Secure checkout"
+        )
+        step_indicator(["Membership details", "Payment", "Digital pass"], 1)
 
         # Gateway Top Overview Bar
         with st.container(border=True):
             col_ov1, col_ov2, col_ov3, col_ov4 = st.columns(4)
             with col_ov1:
-                st.caption("MERCHANT / GYM")
+                st.caption("MERCHANT")
                 st.markdown(f"**{c_data['gym_name']}**")
-                st.caption(f"📍 {c_data['branch_name']}, {c_data['city']}")
+                st.caption(f"{c_data['branch_name']}, {c_data['city']}")
             with col_ov2:
-                st.caption("MEMBER SUBSCRIBER")
+                st.caption("MEMBER")
                 st.markdown(f"**{c_data['name']}**")
-                st.caption(f"📞 {c_data['phone']}")
+                st.caption(f"{c_data['phone']}")
             with col_ov3:
-                st.caption("PLAN & DURATION")
+                st.caption("PLAN")
                 st.markdown(f"**{c_data['plan_choice'].split('—')[0].strip()}**")
                 st.caption(f"Base: ₹{c_data['base_price']:,.2f} + GST: ₹{c_data['gst_amount']:,.2f}")
             with col_ov4:
-                st.caption("TOTAL PAYABLE")
-                st.markdown(f"### **₹{c_data['total_payable']:,.2f}**")
+                st.caption("TOTAL DUE")
+                section_header(f"₹{c_data['total_payable']:,.2f}", level=3)
 
-        st.markdown("---")
+        st.markdown("")
 
         # Payment Tabs
         gw_tab_names = [
@@ -1074,11 +1100,18 @@ elif portal_mode == "📝 New Member Registration & Payment":
         elif "Instant" in c_data["pay_method"]:
             initial_tab_idx = 3
 
+        gw_tab_display = {
+            gw_tab_names[0]: "UPI",
+            gw_tab_names[1]: "Credit / Debit Card",
+            gw_tab_names[2]: "Net Banking",
+            gw_tab_names[3]: "Express Approval (Test)"
+        }
         selected_gw_tab = st.radio(
-            "Select or switch payment option on gateway:",
+            "Payment method",
             gw_tab_names,
             index=initial_tab_idx,
             horizontal=True,
+            format_func=lambda o: gw_tab_display.get(o, o),
             key="gw_radio_tab"
         )
 
@@ -1089,57 +1122,43 @@ elif portal_mode == "📝 New Member Registration & Payment":
 
         # --- GATEWAY OPTION 1: UPI ---
         if "UPI Gateway" in selected_gw_tab:
-            st.subheader("📱 UPI Payment Gateway (Fast & Contactless)")
+            section_header("Pay with UPI")
             col_upi_l, col_upi_r = st.columns([1, 1])
+            merchant_vpa = f"fitnesspay.{c_data['tenant_id']}@icici"
             with col_upi_l:
-                st.markdown("#### **Option A: Scan UPI QR Code**")
-                st.markdown(f"""
-                ```
-                ┌────────────────────────────────────────┐
-                │ █▀▀▀▀▀█ ▄█▄▀█  █▄ █▀▀▀▀▀█              │
-                │ █ ███ █ ▄▀█▀▄ ▀ █ █ ███ █              │
-                │ █ ▀▀▀ █ █ █▀█ █ █ █ ▀▀▀ █   SCAN & PAY │
-                │ ▀▀▀▀▀▀▀ ▀▄█ ▀ █ ▀ ▀▀▀▀▀▀▀              │
-                │ █▄ █▀▄▀▄▀▄▀▄▀▄█▄▀▄ █▄▀█▄█              │
-                │ █▀▀▀▀▀█ █ ▄ █▄▀▄█ █ █ █▄█              │
-                │ █ ███ █ █▀█ █▄█ █ █ █ █ █   BHIM / UPI │
-                │ █ ▀▀▀ █ ▄ ▄▀█▄ ▄█ █ █ █▄█              │
-                │ ▀▀▀▀▀▀▀ ▀ ▀ ▀▀▀ ▀ ▀ ▀▀▀▀▀              │
-                └────────────────────────────────────────┘
-                ```
-                """)
-                st.markdown(f"**Virtual Payment Address (VPA):** `fitnesspay.{c_data['tenant_id']}@icici`")
-                st.caption("Point your camera or UPI scanner at the code above.")
+                section_header("Scan QR code", level=4)
+                upi_qr_card(merchant_vpa, c_data['gym_name'], c_data['total_payable'], f"Membership {c_data['name']}")
+                st.caption(f"Merchant UPI ID: `{merchant_vpa}`")
 
             with col_upi_r:
-                st.markdown("#### **Option B: Pay via UPI Apps**")
-                st.write("Click any app to send an instant authorization push to your device:")
+                section_header("Pay with a UPI app", level=4)
+                st.caption("Choose an app to send a payment request to your phone.")
                 c_app1, c_app2 = st.columns(2)
                 with c_app1:
-                    if st.button("🔵 Google Pay", use_container_width=True):
+                    if st.button("Google Pay", use_container_width=True):
                         payment_authorized = True
                         authorized_method = "UPI (Google Pay Express)"
-                    if st.button("🟣 PhonePe", use_container_width=True):
+                    if st.button("PhonePe", use_container_width=True):
                         payment_authorized = True
                         authorized_method = "UPI (PhonePe App)"
                 with c_app2:
-                    if st.button("⚪ Paytm UPI", use_container_width=True):
+                    if st.button("Paytm", use_container_width=True):
                         payment_authorized = True
                         authorized_method = "UPI (Paytm Payments)"
-                    if st.button("🟢 CRED UPI", use_container_width=True):
+                    if st.button("CRED", use_container_width=True):
                         payment_authorized = True
                         authorized_method = "UPI (CRED / BHIM)"
 
                 st.markdown("---")
-                st.markdown("#### **Option C: Enter Your UPI ID**")
-                vpa_input = st.text_input("Your UPI ID (VPA):", placeholder="e.g. yourname@okhdfcbank", value="member@okhdfcbank")
-                if st.button("📲 Send Collect Request & Authorize ₹" + f"{c_data['total_payable']:,.2f}", type="primary", use_container_width=True):
+                section_header("Pay with your UPI ID", level=4)
+                vpa_input = st.text_input("UPI ID", placeholder="yourname@okhdfcbank", value="member@okhdfcbank")
+                if st.button(f"Send payment request · ₹{c_data['total_payable']:,.2f}", type="primary", use_container_width=True):
                     payment_authorized = True
                     authorized_method = f"UPI Collect ({vpa_input})"
 
         # --- GATEWAY OPTION 2: CREDIT / DEBIT CARD WITH 3D SECURE OTP ---
         elif "Credit / Debit Card" in selected_gw_tab:
-            st.subheader("💳 Credit / Debit Card Gateway & 3D Secure Verification")
+            section_header("Pay by card", caption="Visa, Mastercard and RuPay, verified with 3-D Secure.")
             
             if "card_otp_sent" not in st.session_state:
                 st.session_state.card_otp_sent = False
@@ -1147,79 +1166,76 @@ elif portal_mode == "📝 New Member Registration & Payment":
             if not st.session_state.card_otp_sent:
                 col_card1, col_card2 = st.columns([1, 1])
                 with col_card1:
-                    st.text_input("Card Number", "4532 •••• •••• 8821")
-                    st.text_input("Cardholder Name", c_data['name'].upper())
+                    st.text_input("Card number", "4532 •••• •••• 8821")
+                    st.text_input("Name on card", c_data['name'].upper())
                     c_exp, c_cvv = st.columns(2)
                     with c_exp:
-                        st.text_input("Expiry Date (MM/YY)", "08/29")
+                        st.text_input("Expiry (MM/YY)", "08/29")
                     with c_cvv:
                         st.text_input("CVV", "•••", type="password")
 
                 with col_card2:
                     st.markdown("""
-                    <div style="background: linear-gradient(135deg, #1E3A8A, #3B82F6); padding: 20px; border-radius: 12px; color: white; margin-top: 10px;">
-                        <div style="display: flex; justify-content: space-between; font-weight: bold;">
+                    <div style="background: linear-gradient(135deg, #1E3A8A 0%, #312E81 100%); padding: 22px 24px; border-radius: 14px; color: white; margin-top: 28px; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 10px 30px rgba(0,0,0,0.35);">
+                        <div style="display: flex; justify-content: space-between; font-weight: 600; font-size: 13px; letter-spacing: 0.06em; opacity: 0.9;">
                             <span>FAM-FIOS PLATINUM</span>
-                            <span>VISA</span>
+                            <span style="font-style: italic; font-weight: 700;">VISA</span>
                         </div>
-                        <div style="font-size: 20px; letter-spacing: 2px; margin: 25px 0 10px 0; font-family: monospace;">
+                        <div style="font-size: 20px; letter-spacing: 3px; margin: 28px 0 14px 0; font-family: 'JetBrains Mono', monospace;">
                             4532  ••••  ••••  8821
                         </div>
                         <div style="display: flex; justify-content: space-between; font-size: 12px;">
                             <div>
-                                <div style="opacity: 0.8;">CARDHOLDER</div>
-                                <div style="font-weight: bold;">""" + c_data['name'].upper() + """</div>
+                                <div style="opacity: 0.65; letter-spacing: 0.06em;">CARDHOLDER</div>
+                                <div style="font-weight: 600;">""" + html.escape(c_data['name'].upper()) + """</div>
                             </div>
                             <div>
-                                <div style="opacity: 0.8;">EXPIRES</div>
-                                <div style="font-weight: bold;">08/29</div>
+                                <div style="opacity: 0.65; letter-spacing: 0.06em;">EXPIRES</div>
+                                <div style="font-weight: 600;">08/29</div>
                             </div>
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
-                    st.caption("🔒 Verified by VISA & Mastercard Identity Check")
+                    st.caption("Protected by Visa Secure and Mastercard Identity Check.")
 
-                if st.button("🔒 Proceed to Bank 3D-Secure Verification Page ➡️", type="primary", use_container_width=True):
+                if st.button("Continue to 3-D Secure verification", type="primary", use_container_width=True):
                     st.session_state.card_otp_sent = True
                     st.rerun()
 
             else:
-                # 3D-Secure Bank OTP Sub-Screen!
-                st.markdown("""
-                <div style="background-color: #0F172A; border: 2px solid #3B82F6; border-radius: 10px; padding: 25px; margin: 10px 0;">
-                    <h3 style="color: #60A5FA; margin-top: 0;">🏦 Bank 3D-Secure Authorization Page</h3>
-                    <p style="color: #CBD5E1;">A One-Time Password (OTP) has been sent to your registered mobile number <b>+91 *****""" + c_data['phone'][-4:] + """</b>.</p>
-                </div>
-                """, unsafe_allow_html=True)
+                # 3D-Secure Bank OTP Sub-Screen
+                with st.container(border=True):
+                    section_header("Bank verification (3-D Secure)", level=4)
+                    st.write(f"Your bank has sent a one-time password to the mobile number ending in **{html.escape(c_data['phone'][-4:])}**.")
 
-                col_otp1, col_otp2 = st.columns([2, 1])
-                with col_otp1:
-                    otp_val = st.text_input("Enter 6-Digit Bank OTP:", value="742910")
-                    st.caption("💡 Hint for Demo Evaluation: Use the pre-filled OTP `742910`.")
-                with col_otp2:
-                    st.markdown("<br>", unsafe_allow_html=True)
-                    if st.button("🔄 Resend OTP"):
-                        st.info("A new OTP has been dispatched to your mobile.")
+                    col_otp1, col_otp2 = st.columns([2, 1])
+                    with col_otp1:
+                        otp_val = st.text_input("Bank OTP", value="742910")
+                        st.caption("Test mode: the bank OTP `742910` is pre-filled.")
+                    with col_otp2:
+                        st.markdown("<div style='height: 28px'></div>", unsafe_allow_html=True)
+                        if st.button("Resend OTP", use_container_width=True):
+                            st.info("A new OTP has been sent to your mobile.")
 
                 col_otp_btn1, col_otp_btn2 = st.columns(2)
                 with col_otp_btn1:
-                    if st.button("✅ Confirm & Authenticate Payment of ₹" + f"{c_data['total_payable']:,.2f}", type="primary", use_container_width=True):
+                    if st.button(f"Authorize payment · ₹{c_data['total_payable']:,.2f}", type="primary", use_container_width=True):
                         payment_authorized = True
                         authorized_method = "Credit/Debit Card (3D-Secure Verified)"
                         st.session_state.card_otp_sent = False
                 with col_otp_btn2:
-                    if st.button("⬅️ Change Card Details", use_container_width=True):
+                    if st.button("Change card details", use_container_width=True):
                         st.session_state.card_otp_sent = False
                         st.rerun()
 
         # --- GATEWAY OPTION 3: NET BANKING ---
         elif "Net Banking Gateway" in selected_gw_tab:
-            st.subheader("🏛️ Net Banking Portal Gateway")
+            section_header("Pay with net banking")
             col_nb1, col_nb2 = st.columns([1, 1])
             with col_nb1:
-                st.markdown("#### **Select Your Bank**")
+                section_header("Your bank", level=4)
                 bank_choice = st.selectbox(
-                    "Choose Bank:",
+                    "Bank",
                     [
                         "State Bank of India (SBI)",
                         "HDFC Bank",
@@ -1229,27 +1245,26 @@ elif portal_mode == "📝 New Member Registration & Payment":
                         "Punjab National Bank"
                     ]
                 )
-                st.info(f"You will be securely routed through {bank_choice}'s enterprise gateway.")
+                st.caption(f"You'll authorize this payment through {bank_choice}'s secure gateway.")
 
             with col_nb2:
-                st.markdown("#### **Bank Gateway Login Credentials**")
-                st.text_input("NetBanking Customer ID / Username", value=f"usr_{c_data['phone'][-6:]}")
-                st.text_input("NetBanking IPIN / Password", value="••••••••••", type="password")
-                
-                if st.button(f"🔒 Log In & Authorize ₹{c_data['total_payable']:,.2f} via {bank_choice}", type="primary", use_container_width=True):
+                section_header("Net banking sign-in", level=4)
+                st.text_input("Customer ID / username", value=f"usr_{c_data['phone'][-6:]}")
+                st.text_input("Password / IPIN", value="••••••••••", type="password")
+
+                if st.button(f"Sign in and pay ₹{c_data['total_payable']:,.2f}", type="primary", use_container_width=True):
                     payment_authorized = True
                     authorized_method = f"Net Banking ({bank_choice})"
 
         # --- GATEWAY OPTION 4: INSTANT DEMO ---
         elif "1-Click Instant Approval" in selected_gw_tab:
-            st.subheader("⚡ Instant 1-Click Fast Approval (Demo Mode)")
-            st.info("💡 Bypasses external payment network handshakes for instant review and system grading.")
-            if st.button(f"⚡ Instant Approve Payment of ₹{c_data['total_payable']:,.2f} & Complete", type="primary", use_container_width=True):
+            section_header("Express Approval", caption="Test mode — authorizes the payment without contacting a payment network.")
+            if st.button(f"Approve payment · ₹{c_data['total_payable']:,.2f}", type="primary", use_container_width=True):
                 payment_authorized = True
-                authorized_method = "1-Click Instant Demo Payment"
+                authorized_method = "Express Approval (Test Mode)"
 
         st.markdown("---")
-        if st.button("⬅️ Cancel & Return to Registration Details"):
+        if st.button("Back to membership details"):
             st.session_state.checkout_stage = "form"
             st.session_state.card_otp_sent = False
             st.rerun()
@@ -1361,73 +1376,62 @@ elif portal_mode == "📝 New Member Registration & Payment":
     # ==========================================================================
     elif st.session_state.checkout_stage == "success":
         rec = st.session_state.payment_receipt
-        st.balloons()
-        st.title("🎉 Payment Approved & Membership Activated!")
-        
-        # Step progress indicator
-        st.markdown("""
-        <div style="background-color: #1E293B; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #334155;">
-            <span style="color: #10B981; font-weight: bold;">✅ Step 1: Details Confirmed</span> 
-            <span style="color: #64748B; margin: 0 10px;">➔</span> 
-            <span style="color: #10B981; font-weight: bold;">✅ Step 2: Payment Gateway Authorized</span> 
-            <span style="color: #64748B; margin: 0 10px;">➔</span> 
-            <span style="color: #38BDF8; font-weight: bold;">🎟️ Step 3: Official Pass & Connected Pages (ACTIVE)</span>
-        </div>
-        """, unsafe_allow_html=True)
+        page_header(
+            "Payment successful — membership active",
+            f"Welcome to {rec['gym_name']}, {rec['name']}. Your receipt and digital pass are below.",
+            eyebrow="Confirmation"
+        )
+        step_indicator(["Membership details", "Payment", "Digital pass"], 2)
 
         col_rcpt1, col_rcpt2 = st.columns([1, 1])
 
         with col_rcpt1:
-            st.markdown("### 🧾 **Official Tax Invoice & Payment Receipt**")
+            section_header("Tax invoice & receipt", level=3)
             with st.container(border=True):
-                st.write(f"**Transaction ID:** `{rec['txn_id']}`")
-                st.write(f"**Bank RRN / Ref:** `{rec['bank_rrn']}`")
-                st.write(f"**Payment Method:** `{rec['method']}`")
-                st.write(f"**Payment Timestamp:** `{rec['paid_at']}`")
-                st.write(f"**Payment Status:** `CAPTURED & VERIFIED ✅`")
+                kv_rows([
+                    ("Transaction ID", rec['txn_id']),
+                    ("Bank reference (RRN)", rec['bank_rrn']),
+                    ("Payment method", rec['method']),
+                    ("Paid on", rec['paid_at']),
+                    ("Status", "Captured & verified"),
+                ])
                 st.markdown("---")
-                st.write(f"**Billed To:** {rec['name']} ({rec['phone']})")
-                st.write(f"**Facility:** {rec['gym_name']} — {rec['branch_name']}")
-                st.write(f"**City:** {rec['city']}")
-                st.write(f"**Membership Plan:** {rec['plan_name']}")
-                st.write(f"Base Membership Fee: **₹{rec['base_price']:,.2f}**")
-                st.write(f"GST (18%): **₹{rec['gst_amount']:,.2f}**")
-                st.markdown(f"### **Total Amount Paid: ₹{rec['total_payable']:,.2f}**")
+                kv_rows([
+                    ("Billed to", f"{rec['name']} ({rec['phone']})"),
+                    ("Facility", f"{rec['gym_name']} — {rec['branch_name']}"),
+                    ("City", rec['city']),
+                    ("Plan", rec['plan_name']),
+                    ("Membership fee", f"₹{rec['base_price']:,.2f}"),
+                    ("GST (18%)", f"₹{rec['gst_amount']:,.2f}"),
+                ], total=("Total paid", f"₹{rec['total_payable']:,.2f}"))
                 s3_uri_display = rec.get("s3_uri", f"s3://fam-fios-cloud-vault/invoices/{rec['txn_id']}.json")
-                st.caption(f"☁️ **Amazon S3 Cloud Vault Archive:** `{s3_uri_display}` (🛡️ Server-Side Encrypted)")
+                st.caption(f"Archived to Amazon S3 (server-side encrypted): `{s3_uri_display}`")
 
         with col_rcpt2:
-            st.markdown("### 🎟️ **Official Digital Fitness Pass**")
-            st.markdown(f"""
-            ```
-            ========================================================================
-                              OFFICIAL DIGITAL FITNESS PASS                         
-            ========================================================================
-            MEMBER NAME:       {rec['name'].upper()}
-            MEMBER ID:         {rec['member_id']}
-            GYM ORGANIZATION:  {rec['gym_name']}
-            CITY & FRANCHISE:  {rec['city'].upper()} — {rec['branch_name'].upper()}
-            ADDRESS:           {rec['branch_address']}
-            PHONE:             {rec['phone']}
-            MEMBERSHIP PLAN:   {rec['plan_name']} (PAID: ₹{rec['total_payable']:,.2f})
-            VALID UNTIL:       {rec['expiry_date']}
-            ACCESS STATUS:     ACTIVE & VERIFIED ✅
-            SECURITY BARCODE:  ||| ||||| |||| |||| ||| ||||||| ||||| || |||
-            ========================================================================
-            ```
-            """)
+            section_header("Digital fitness pass", level=3)
+            membership_pass(
+                member_name=rec['name'],
+                member_id=rec['member_id'],
+                gym_name=rec['gym_name'],
+                location=f"{rec['city']} — {rec['branch_name']}",
+                address=rec['branch_address'],
+                phone=rec['phone'],
+                plan=rec['plan_name'],
+                amount_paid=f"₹{rec['total_payable']:,.2f}",
+                valid_until=rec['expiry_date'],
+            )
+            st.caption("Show this pass's QR code at the front desk to check in.")
 
         st.markdown("---")
-        st.markdown("## 🚀 **Choose Where You Want to Go Next (Further Pages):**")
-        st.caption("Your payment is complete and your account is live across all modules. Click any destination below:")
+        section_header("What's next", caption="Your account is active across all modules.")
 
         c_dest1, c_dest2, c_dest3 = st.columns(3)
 
         with c_dest1:
             with st.container(border=True):
-                st.markdown("### 🏋️ **Member Fitness Companion**")
-                st.write(f"Access workout logging, QR scanner check-in, and AI plateau detection pre-loaded for **{rec['name']}**.")
-                if st.button("👉 Go to My Member Fitness Dashboard", type="primary", use_container_width=True):
+                section_header("Member dashboard", level=4)
+                st.write(f"Workout logging, check-in and plateau detection, set up for **{rec['name']}**.")
+                if st.button("Open member dashboard", type="primary", use_container_width=True):
                     st.session_state.nav_target = "🏋️ Gym Member / User View"
                     st.session_state.tenant_target = rec["tenant_id"]
                     st.session_state.logged_in_member = rec
@@ -1435,23 +1439,23 @@ elif portal_mode == "📝 New Member Registration & Payment":
 
         with c_dest2:
             with st.container(border=True):
-                st.markdown("### 🏢 **Gym Owner / Admin Console**")
-                st.write(f"Inspect **{rec['gym_name']}** management center and verify your name appears at the top of the roster.")
-                if st.button("👉 Open Gym Owner Console", use_container_width=True):
+                section_header("Operations console", level=4)
+                st.write(f"See **{rec['gym_name']}**'s management view, with this member at the top of the roster.")
+                if st.button("Open operations console", use_container_width=True):
                     st.session_state.nav_target = "🏢 Gym Owner / Admin View"
                     st.session_state.tenant_target = rec["tenant_id"]
                     st.rerun()
 
         with c_dest3:
             with st.container(border=True):
-                st.markdown("### 🗄️ **Central Users & Members Database**")
-                st.write(f"View the live SQLite relational database (`users` and `members` tables) containing your new record.")
-                if st.button("👉 Inspect in Central Database", use_container_width=True):
+                section_header("Users & members", level=4)
+                st.write("Browse the `users` and `members` tables, including this new record.")
+                if st.button("Open users & members", use_container_width=True):
                     st.session_state.nav_target = "🗄️ Central Users & Members Database"
                     st.rerun()
 
         st.markdown("")
-        if st.button("➕ Register Another Member"):
+        if st.button("Register Another Member"):
             st.session_state.checkout_stage = "form"
             st.session_state.card_otp_sent = False
             st.rerun()
@@ -1460,86 +1464,91 @@ elif portal_mode == "📝 New Member Registration & Payment":
 # 2. GYM OWNER / ADMIN VIEW
 # ==============================================================================
 elif portal_mode == "🏢 Gym Owner / Admin View":
-    st.markdown(f"## 🏢 **{active_genome.gym_name} — Gym Owner Command Center**")
-    st.markdown(
-        f"**Facility ID:** `{active_tenant_id}` &nbsp;|&nbsp; "
-        f"**Subscription Plan:** `{sub.tier} Plan` &nbsp;|&nbsp; "
-        f"**System State:** `Generation {active_genome.generation} (Active & Healthy)`"
+    page_header(
+        active_genome.gym_name,
+        "Capacity, members, demand forecasting, collaborative AI, compliance and cloud storage for this facility.",
+        eyebrow="Operations console",
+        chips=[
+            chip("Facility", active_tenant_id),
+            chip("Plan", f"{sub.tier}"),
+            chip("Generation", str(active_genome.generation)),
+            chip("Healthy", dot_color="#10B981"),
+        ]
     )
 
     if logged_in_user and logged_in_user.get("role") == "gym_admin":
-        st.success(f"🔑 **Administrator Session Active:** Authenticated as **{logged_in_user.get('full_name')}** ({logged_in_user.get('branch', 'Executive')}) via Secure OTP.")
+        st.success(f"Signed in as administrator **{logged_in_user.get('full_name')}** ({logged_in_user.get('branch', 'Executive')}).")
     elif logged_in_user and logged_in_user.get("role") == "member":
-        st.info(f"ℹ️ **Member Audit Mode:** Logged in as **{logged_in_user.get('full_name')}** (Member). Accessing administrative telemetry in preview mode.")
+        st.info(f"You're signed in as a member (**{logged_in_user.get('full_name')}**). This console is shown read-only for preview.")
 
     # Top KPI Metrics with Plain-English explanations
     kpi1, kpi2, kpi3, kpi4 = st.columns(4)
     utilization_pct = int((sub.active_members / max(1, sub.max_members)) * 100)
     with kpi1:
         st.metric(
-            label="👥 Enrolled Members",
+            label="Enrolled members",
             value=f"{sub.active_members} / {sub.max_members}",
-            delta=f"{utilization_pct}% of Plan Limit",
+            delta=f"{utilization_pct}% of plan limit",
             help="Total active members registered at your gym versus your current monthly subscription limit."
         )
     with kpi2:
         st.metric(
-            label="👨‍🏫 Certified Trainers",
+            label="Certified trainers",
             value=f"{sub.active_trainers} / {sub.max_trainers}",
-            delta="Trainer Quota",
+            delta="Trainer quota",
             help="Trainers currently employed at this gym facility."
         )
     with kpi3:
         st.metric(
-            label="🕒 Rush-Hour Concentration",
+            label="Peak-hour share",
             value=f"{int(usage.peak_hour_ratio * 100)}%",
-            delta="Morning & Evening Waves",
+            delta="Morning & evening",
             help="Percentage of daily members who visit during peak morning (6-9 AM) and peak evening (5-8 PM) rush hours."
         )
     with kpi4:
         st.metric(
-            label="🔒 Data Isolation Score",
-            value="100% Strict",
-            delta="Zero Leakage to Competitors",
+            label="Data isolation",
+            value="100%",
+            delta="No cross-tenant access",
             help="ACVE security score proving your gym's records are completely firewalled from all other gyms."
         )
 
-    st.markdown("---")
+    st.markdown("")
 
     admin_tabs = st.tabs([
-        "⚡ 1. Smart Capacity & Plan Upgrades (SICE)",
-        "👥 2. Member Directory & Live Signups",
-        "🕒 3. Rush-Hour Crowd Predictor (PTLM)",
-        "🧠 4. Privacy-Safe Collaborative AI (FAFIE)",
-        "🛡️ 5. Security & Isolation Defense (ACVE)",
-        "☁️ 6. Amazon S3 Cloud Storage Vault"
+        "Capacity & Upgrades",
+        "Members",
+        "Demand Forecast",
+        "Collaborative AI",
+        "Compliance",
+        "Cloud Storage"
     ])
 
     # --- TAB 1: SICE SMART UPGRADES ---
     with admin_tabs[0]:
-        st.markdown("### ⚡ **Smart Plan & Capacity Forecaster (SICE Engine)**")
+        section_header("Capacity forecasting", caption="SICE engine")
         st.info("""
-        💡 **What this does in plain English:**  
-        Conventional software locks your doors or crashes when you hit your member limit.  
-        **SICE** looks at how fast you are signing up members, calculates when you will run out of capacity *before* it happens,  
-        and calculates a fair, discounted (prorated) price for the remaining days of your month so your business never stops!
+        **How it works.** Instead of blocking sign-ups when you hit your member limit, SICE tracks how fast you're
+        growing, predicts when you'll reach capacity *before* it happens, and offers a fair prorated price for the
+        rest of the billing month so you never have to turn members away.
         """)
 
         col_sice_left, col_sice_right = st.columns([3, 2])
         with col_sice_left:
-            st.markdown("#### 📊 **Real-Time Capacity Meter**")
-            st.write(f"Current Usage: **{sub.active_members} members** out of **{sub.max_members} max**")
+            section_header("Current capacity", level=4)
+            st.write(f"**{sub.active_members}** of **{sub.max_members}** member slots used")
             st.progress(min(1.0, sub.active_members / max(1, sub.max_members)))
 
             days_remaining = sub.days_remaining_in_cycle
             growth_vel = sub.member_growth_velocity
             projected_end = int(sub.active_members + (growth_vel * days_remaining))
 
-            st.markdown(f"""
-            - **Current Sign-Up Speed:** `{growth_vel:.1f} new members every day`
-            - **Days Left in Current Billing Month:** `{days_remaining} days`
-            - **Projected Total Members by Month End:** `{projected_end} members`
-            """)
+            kv_rows([
+                ("Sign-up rate", f"{growth_vel:.1f} new members / day"),
+                ("Days left in billing month", f"{days_remaining} days"),
+                ("Projected members at month end", f"{projected_end}"),
+            ])
+            st.markdown("")
 
             if projected_end >= sub.max_members and sub.tier != "Gold":
                 next_tier = "Silver" if sub.tier == "Free" else "Gold"
@@ -1547,38 +1556,37 @@ elif portal_mode == "🏢 Gym Owner / Admin View":
                 prorated_fee = round(price_difference * (days_remaining / 30.0), 2)
                 next_limit = 250 if next_tier == "Silver" else 1000
 
-                st.error(f"🚨 **Action Needed:** Your gym is on track to hit its {sub.tier} plan ceiling in ~{int((sub.max_members - sub.active_members)/max(0.1, growth_vel))} days!")
-                st.warning(f"""
-                **SICE Recommendation:** Upgrade to the **{next_tier} Plan**  
-                - **New Member Limit:** {next_limit} members (gives your gym room to expand!)  
-                - **Full Monthly Price:** ${price_difference}/month  
-                - **Special Prorated Price Today:** **${prorated_fee}** *(you only pay for the remaining {days_remaining} days!)*
-                """)
+                st.error(f"**Action needed:** at the current rate this gym will reach its {sub.tier} plan limit in about {int((sub.max_members - sub.active_members)/max(0.1, growth_vel))} days.")
+                with st.container(border=True):
+                    section_header(f"Recommended: upgrade to {next_tier}", level=4)
+                    kv_rows([
+                        ("New member limit", f"{next_limit} members"),
+                        ("Monthly price", f"${price_difference:.2f} / month"),
+                    ], total=("Prorated price today", f"${prorated_fee:.2f}"))
+                    st.caption(f"You only pay for the remaining {days_remaining} days of this billing month.")
 
-                if st.button(f"✅ Click Here to Upgrade to {next_tier} Tier (${prorated_fee})", type="primary", use_container_width=True):
+                if st.button(f"Upgrade to {next_tier} · ${prorated_fee:.2f}", type="primary", use_container_width=True):
                     sice.execute_preemptive_upgrade(active_tenant_id, next_tier)
-                    st.success(f"🎉 Upgraded {active_genome.gym_name} to {next_tier} Plan! Limit expanded to {next_limit} members.")
+                    st.success(f"{active_genome.gym_name} upgraded to {next_tier}. Member limit is now {next_limit}.")
                     st.rerun()
             else:
-                st.success("✅ **Capacity Status:** Your gym is operating safely within its limits. No upgrade required today.")
+                st.success("**Within capacity.** This gym is operating comfortably within its plan limits — no upgrade needed.")
 
         with col_sice_right:
-            st.markdown("#### 🤖 **Autonomous AI Assistants Feed**")
-            st.caption("Specialized AI agents working in the background for your gym:")
+            section_header("Agent activity", level=4)
+            st.caption("Recent actions from the background agents monitoring this gym.")
             agent_alerts = db_store.get_intents_for_tenant(active_tenant_id)
             if agent_alerts:
                 for alert in agent_alerts[-3:]:
                     with st.container(border=True):
-                        st.markdown(f"**Agent:** `{alert.source_agent}`")
-                        st.markdown(f"**Action:** `{alert.proposed_action}`")
-                        st.caption(f"Reason: {alert.expected_operational_impact}")
+                        st.markdown(f"**{alert.proposed_action}**")
+                        st.caption(f"{alert.source_agent} · {alert.expected_operational_impact}")
             else:
-                st.info("All background assistants report normal operational parameters.")
+                st.info("No agent actions right now — everything is operating normally.")
 
     # --- TAB 2: MEMBER MANAGEMENT ---
     with admin_tabs[1]:
-        st.markdown(f"### 👥 **Member Roster & Multi-Franchise Live Signups ({active_genome.gym_name})**")
-        st.info("💡 **What this does:** All members who registered from the Public Portal or enrolled at any franchise branch appear here in real time with branch-level filtering.")
+        section_header("Member roster", caption=f"Everyone enrolled at {active_genome.gym_name}, across all branches. New registrations appear here immediately.")
 
         with SessionLocal() as db:
             active_mems = db.query(MemberRecordModel).filter_by(tenant_id=active_tenant_id).all()
@@ -1586,10 +1594,10 @@ elif portal_mode == "🏢 Gym Owner / Admin View":
                 col_f_city, col_f_branch = st.columns(2)
                 with col_f_city:
                     cities = ["All Cities"] + sorted(list(set(m.city for m in active_mems if getattr(m, 'city', ''))))
-                    filter_city = st.selectbox("🏙️ Filter by City:", cities, key="adm_filt_city")
+                    filter_city = st.selectbox("City", cities, key="adm_filt_city")
                 with col_f_branch:
                     branches = ["All Franchise Branches"] + sorted(list(set(m.branch for m in active_mems if getattr(m, 'branch', ''))))
-                    filter_branch = st.selectbox("📍 Filter by Branch:", branches, key="adm_filt_branch")
+                    filter_branch = st.selectbox("Branch", branches, key="adm_filt_branch")
 
                 filtered_mems = active_mems
                 if filter_city != "All Cities":
@@ -1613,61 +1621,62 @@ elif portal_mode == "🏢 Gym Owner / Admin View":
                     }
                     for m in filtered_mems
                 ])
-                st.dataframe(df_members, use_container_width=True)
-                st.caption(f"Showing **{len(filtered_mems)}** members registered at this facility.")
+                st.dataframe(df_members, use_container_width=True, hide_index=True)
+                st.caption(f"{len(filtered_mems)} members shown")
             else:
-                st.info("No members recorded in this facility yet. Go to '📝 New Member Registration' in the sidebar to register the first member!")
+                st.info("No members at this facility yet. Use **Membership Registration** in the sidebar to add the first one.")
 
     # --- TAB 3: ATTENDANCE & PTLM ---
     with admin_tabs[2]:
-        st.markdown("### 🕒 **Rush-Hour Crowd Predictor & Server Auto-Scaler (PTLM Engine)**")
+        section_header("Demand forecast", caption="PTLM engine")
         st.info("""
-        💡 **What this does in plain English:**  
-        Most cloud apps only scale up *after* the gym is already full and the check-in scanners start freezing.  
-        **PTLM** uses historical attendance data to predict morning (6–9 AM) and evening (5–8 PM) crowds,  
-        and **proactively provisions extra database and server power 45 minutes before members walk through the door!**
+        **How it works.** Most systems only scale up *after* the gym is already busy. PTLM uses attendance history
+        to predict the morning (6–9 AM) and evening (5–8 PM) rushes and **provisions extra capacity 45 minutes before
+        members arrive**.
         """)
 
         col_ptlm_chart, col_ptlm_ctrl = st.columns([3, 2])
         with col_ptlm_chart:
-            st.markdown("#### 📈 **Predicted 24-Hour Check-In Rush Pattern**")
+            section_header("Predicted check-ins by hour", level=4)
             forecasts = [ptlme.forecast_demand(active_genome, h) for h in range(24)]
             df_hourly = pd.DataFrame([
                 {"Hour": f"{h:02d}:00", "Predicted Check-Ins": f["predicted_concurrency"], "Peak Window": f["is_peak_window"]}
                 for h, f in enumerate(forecasts)
             ])
             st.bar_chart(df_hourly.set_index("Hour")["Predicted Check-Ins"])
-            st.caption("🔴 Morning Peak Window: **06:00 – 09:00 AM** &nbsp;|&nbsp; 🔴 Evening Peak Window: **17:00 – 20:00 PM**")
+            st.caption("Peak windows: **06:00–09:00** (morning) and **17:00–20:00** (evening)")
 
         with col_ptlm_ctrl:
-            st.markdown("#### ⚙️ **Current Server Capacity**")
-            st.write(f"- **Allocated CPU Power:** `{active_genome.resource.allocated_cpu_cores} Cores`")
-            st.write(f"- **Allocated Memory:** `{active_genome.resource.allocated_memory_mb} MB RAM`")
-            st.write(f"- **Materialized Database Partitions:** `{active_genome.resource.materialized_partitions} Active`")
-            st.write(f"- **Rush-Hour Pre-Scaling Active:** `{'🟢 YES (High Speed)' if active_genome.resource.is_preemptively_scaled else '⚪ Standard Baseline'}`")
+            section_header("Current server capacity", level=4)
+            kv_rows([
+                ("CPU", f"{active_genome.resource.allocated_cpu_cores} cores"),
+                ("Memory", f"{active_genome.resource.allocated_memory_mb} MB"),
+                ("Database partitions", f"{active_genome.resource.materialized_partitions} active"),
+                ("Peak pre-scaling", "Active" if active_genome.resource.is_preemptively_scaled else "Baseline"),
+            ])
+            st.markdown("")
 
-            target_hour = st.slider("Select an hour to simulate pre-provisioning:", 0, 23, 7)
+            target_hour = st.slider("Hour to pre-provision for", 0, 23, 7)
             hour_fc = ptlme.forecast_demand(active_genome, target_hour)
-            st.caption(f"At {target_hour:02d}:00, estimated crowd is **{hour_fc['predicted_concurrency']} concurrent check-ins**.")
+            st.caption(f"Expected at {target_hour:02d}:00: **{hour_fc['predicted_concurrency']} concurrent check-ins**.")
 
-            if st.button("🚀 Pre-Allocate Resources for this Hour Now", type="primary", use_container_width=True):
+            if st.button("Pre-allocate resources for this hour", type="primary", use_container_width=True):
                 res_mat = ptlme.materialize_partitions_for_tenant(active_tenant_id, target_hour)
-                st.success(f"Success! Pre-allocated {res_mat['materialized_partitions']} partitions and {res_mat['allocated_cpu_cores']} CPU cores for {target_hour:02d}:00.")
+                st.success(f"Pre-allocated {res_mat['materialized_partitions']} partitions and {res_mat['allocated_cpu_cores']} CPU cores for {target_hour:02d}:00.")
                 st.rerun()
 
     # --- TAB 4: FAFIE COLLABORATIVE AI ---
     with admin_tabs[3]:
-        st.markdown("### 🧠 **Privacy-Preserving Collaborative AI (FAFIE Engine)**")
+        section_header("Collaborative AI", caption="FAFIE engine")
         st.info("""
-        💡 **What this does in plain English:**  
-        Independent gyms usually have too little data to build powerful AI recommendation models on their own.  
-        **FAFIE** allows hundreds of gyms to collectively train a world-class workout AI **without ever uploading or sharing raw customer data!**  
-        Each gym calculates mathematical updates on its own local database, encrypts them, adds mathematical noise for privacy,  
-        and shares only the anonymous updates with the global aggregator.
+        **How it works.** A single gym rarely has enough data to train a strong recommendation model. FAFIE lets
+        many gyms train one shared workout model together **without sharing raw member data**: each gym computes
+        updates on its own data, adds differential-privacy noise, and sends only those anonymous updates to the aggregator.
         """)
 
-        st.markdown(f"#### 🌐 **Shared Global AI Model Weights:** `{db_store.global_model_weights}`")
-        if st.button("🤝 Run Multi-Gym Collaborative Training Round Now", type="primary"):
+        section_header("Shared model weights", level=4)
+        st.code(str(db_store.global_model_weights), language=None)
+        if st.button("Run a federated training round", type="primary"):
             training_updates = []
             for t in all_tenants:
                 local_tr = FafieLocalTrainer(t.tenant_id)
@@ -1677,49 +1686,48 @@ elif portal_mode == "🏢 Gym Owner / Admin View":
                 training_updates.append(upd)
 
             round_outcome = fafie_aggregator.run_aggregation_round(training_updates)
-            st.success(f"🎉 Round {round_outcome['round_number']} completed across all gyms! Global loss reduced to: {round_outcome['average_loss']}")
+            st.success(f"Round {round_outcome['round_number']} completed across all gyms. Average loss: {round_outcome['average_loss']}")
             if round_outcome.get("s3_uri"):
-                st.info(f"☁️ **FAFIE Checkpoint Archived to Amazon S3**: `{round_outcome['s3_uri']}` ({round_outcome.get('encryption', 'AES256')})")
+                st.info(f"Checkpoint archived to Amazon S3: `{round_outcome['s3_uri']}` ({round_outcome.get('encryption', 'AES256')})")
             st.rerun()
 
     # --- TAB 5: ACVE COMPLIANCE AUDIT ---
     with admin_tabs[4]:
-        st.markdown("### 🛡️ **Autonomous Compliance & Data Isolation Defense (ACVE)**")
-        st.info("💡 Security gatekeeper verifying all actions against strict multi-tenant isolation rules.")
+        section_header("Compliance & data isolation", caption="ACVE engine — every action is checked against multi-tenant isolation rules before it runs.")
         gym_audits = [a for a in db_store.compliance_audits if a["tenant_id"] == active_tenant_id or a["tenant_id"] == "system"]
         if gym_audits:
-            st.dataframe(pd.DataFrame(gym_audits[-10:][["timestamp", "action", "caller_role", "verdict"]]), use_container_width=True)
+            audit_cols = ["timestamp", "action", "caller_role", "verdict"]
+            df_audits = pd.DataFrame(gym_audits[-10:])
+            st.dataframe(df_audits[[c for c in audit_cols if c in df_audits.columns]], use_container_width=True)
         else:
-            st.success("🛡️ Zero security violations recorded. Your gym's data isolation boundary is 100% intact.")
+            st.success("No security violations recorded. This gym's data isolation boundary is intact.")
 
     # --- TAB 6: AMAZON S3 CLOUD STORAGE VAULT ---
     with admin_tabs[5]:
-        st.markdown("### ☁️ **Amazon S3 Enterprise Cloud Storage Vault**")
-        st.info("💡 **Durable Cloud Object Storage:** Persists encrypted FAFIE neural model weight checkpoints, member tax invoices, and verification certificates directly into Amazon S3 with Server-Side KMS/AES-256 Encryption.")
+        section_header("Cloud storage", caption="Encrypted model checkpoints, tax invoices and certificates, stored in Amazon S3 with server-side AES-256 / KMS encryption.")
 
         s3_conf = aws_s3_service.check_s3_configuration(st.session_state.get("custom_aws_credentials"))
-        
+
         c_s3_1, c_s3_2, c_s3_3, c_s3_4 = st.columns(4)
         with c_s3_1:
-            st.metric(label="📦 Active S3 Bucket", value=s3_conf["bucket_name"])
+            st.metric(label="Bucket", value=s3_conf["bucket_name"])
         with c_s3_2:
-            st.metric(label="🌐 AWS Region", value=s3_conf["region"])
+            st.metric(label="AWS Region", value=s3_conf["region"])
         with c_s3_3:
-            st.metric(label="🛡️ Encryption Tier", value="AES-256 / KMS")
+            st.metric(label="Encryption", value="AES-256 / KMS")
         with c_s3_4:
             if s3_conf["configured"]:
-                st.metric(label="⚡ Vault Engine", value="Amazon S3 Standard 🟢")
+                st.metric(label="Storage Backend", value="Amazon S3", delta="Connected")
             else:
-                st.metric(label="⚡ Vault Engine", value="Sandbox Vault 🟡")
+                st.metric(label="Storage Backend", value="Local Sandbox", delta="AWS not connected", delta_color="off")
 
-        st.markdown("---")
+        st.markdown("")
 
         c_s3_action1, c_s3_action2 = st.columns([2, 1])
         with c_s3_action1:
-            st.markdown("#### 🗃️ **S3 Vault Objects Explorer**")
-            st.caption("Live encrypted artifacts stored in your multi-tenant S3 bucket:")
+            section_header("Stored objects", level=4, caption="Encrypted artifacts in this deployment's bucket.")
         with c_s3_action2:
-            if st.button("📦 Backup Current FAFIE Model to S3", type="primary", use_container_width=True):
+            if st.button("Back up current model to S3", type="primary", use_container_width=True):
                 round_tag = f"manual_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
                 backup_data = {
                     "tenant_id": active_tenant_id,
@@ -1729,8 +1737,7 @@ elif portal_mode == "🏢 Gym Owner / Admin View":
                     "timestamp": datetime.utcnow().isoformat()
                 }
                 res = aws_s3_service.upload_model_checkpoint(round_tag, backup_data, st.session_state.get("custom_aws_credentials"))
-                st.balloons()
-                st.success(f"✅ Checkpoint backed up to Amazon S3: `{res['s3_uri']}` ({res.get('bytes_stored', 0):,} bytes)")
+                st.success(f"Checkpoint backed up: `{res['s3_uri']}` ({res.get('bytes_stored', 0):,} bytes)")
                 st.rerun()
 
         # List objects in vault
@@ -1739,27 +1746,26 @@ elif portal_mode == "🏢 Gym Owner / Admin View":
             df_vault = pd.DataFrame(vault_items)
             st.dataframe(df_vault[["key", "size_bytes", "last_modified", "s3_uri", "encryption"]], use_container_width=True)
             
-            with st.expander("🔍 **Inspect Vault File Metadata (Click to View)**", expanded=False):
-                selected_key = st.selectbox("Select file to inspect:", [item["key"] for item in vault_items])
+            with st.expander("Object details", expanded=False):
+                selected_key = st.selectbox("Select file to inspect", [item["key"] for item in vault_items])
                 matched_item = next((item for item in vault_items if item["key"] == selected_key), None)
                 if matched_item:
                     st.write(f"**URI:** `{matched_item['s3_uri']}`")
                     st.write(f"**Size:** `{matched_item['size_bytes']} bytes` &nbsp;|&nbsp; **Last Modified:** `{matched_item['last_modified']}`")
                     st.write(f"**Encryption:** `{matched_item['encryption']}` &nbsp;|&nbsp; **Storage Tier:** `{matched_item.get('tier', 'Standard')}`")
         else:
-            st.info("ℹ️ No objects found in S3 vault yet. Run a collaborative AI round or register a member to create encrypted cloud archives!")
+            st.info("No stored objects yet. Run a federated training round or register a member to create the first archive.")
 
 # ==============================================================================
 # 3. CENTRAL USERS & MEMBERS DATABASE EXPLORER (NEW!)
 # ==============================================================================
 elif portal_mode == "🗄️ Central Users & Members Database":
-    st.title("🗄️ Central Multi-Tenant Users & Multi-Franchise Database")
-    st.markdown("""
-    This portal gives system administrators, auditors, and multi-franchise owners direct insight into the 
-    **persistent relational database (`fam_fios.db`)**. Inspect user accounts, multi-city memberships, 
-    verify branch distributions (such as **Pune's 5 franchises**), and export compliance reports.
-    """)
-    st.markdown("---")
+    page_header(
+        "Users & members",
+        "Accounts and memberships across every gym, city and branch, from the platform database. Search, filter and export for audits and reporting.",
+        eyebrow="Directory",
+        chips=[chip("Database", "fam_fios.db")]
+    )
 
     # Fetch live records from database
     all_users_data = db_store.list_all_users()
@@ -1773,36 +1779,35 @@ elif portal_mode == "🗄️ Central Users & Members Database":
     # Summary KPI Cards
     db_kpi1, db_kpi2, db_kpi3, db_kpi4 = st.columns(4)
     with db_kpi1:
-        st.metric("👥 Total Registered Accounts", total_users_count, help="All user credentials and logins in `users` table.")
+        st.metric("User accounts", total_users_count, help="All user credentials and logins in `users` table.")
     with db_kpi2:
-        st.metric("🏋️ Total Enrolled Members", total_mems_count, help="Active gym membership records in `members` table.")
+        st.metric("Enrolled members", total_mems_count, help="Active gym membership records in `members` table.")
     with db_kpi3:
-        st.metric("💰 Total Revenue Collected", f"₹{total_rev:,.2f}", help="Sum of membership fees paid across all franchises.")
+        st.metric("Revenue collected", f"₹{total_rev:,.2f}", help="Sum of membership fees paid across all franchises.")
     with db_kpi4:
-        st.metric("🏙️ Active Cities Covered", max(1, unique_cities), help="Cities with registered franchises (Pune, Bengaluru, Mumbai, etc.).")
+        st.metric("Cities", max(1, unique_cities), help="Cities with registered franchises (Pune, Bengaluru, Mumbai, etc.).")
 
-    st.markdown("---")
+    st.markdown("")
 
     db_tabs = st.tabs([
-        "👥 1. Registered User Accounts (`users` Table)",
-        "🏋️ 2. Gym Members Directory (`members` Table)",
-        "📊 3. City & Franchise Distribution Analytics"
+        "User Accounts",
+        "Members",
+        "City & Franchise Analytics"
     ])
 
     # --- TAB 1: USERS TABLE ---
     with db_tabs[0]:
-        st.subheader("👥 System User Accounts (`users` table)")
-        st.caption("Includes Gym Owners / Admins, Certified Trainers, and Registered Members with secure salted PBKDF2 credentials.")
+        section_header("User accounts", caption="Gym admins, trainers and members (table: users). Passwords are stored as salted PBKDF2 hashes.")
 
         c_u1, c_u2, c_u3 = st.columns([2, 1, 1])
         with c_u1:
-            u_search = st.text_input("🔍 Search users (Name, Email, Phone, User ID):", placeholder="e.g. Pune, Rohit, admin...", key="u_search_box")
+            u_search = st.text_input("Search", placeholder="Name, email, phone, user ID or branch", key="u_search_box")
         with c_u2:
             u_city_opts = ["All Cities"] + sorted(list(set(u["city"] for u in all_users_data if u["city"])))
-            u_city_filt = st.selectbox("Filter by City:", u_city_opts, key="u_city_filt")
+            u_city_filt = st.selectbox("City", u_city_opts, key="u_city_filt")
         with c_u3:
             u_role_opts = ["All Roles", "gym_admin", "trainer", "member"]
-            u_role_filt = st.selectbox("Filter by Role:", u_role_opts, key="u_role_filt")
+            u_role_filt = st.selectbox("Role", u_role_opts, key="u_role_filt")
 
         filtered_users = all_users_data
         if u_city_filt != "All Cities":
@@ -1832,11 +1837,12 @@ elif portal_mode == "🗄️ Central Users & Members Database":
                 }
                 for u in filtered_users
             ])
-            st.dataframe(df_users, use_container_width=True)
+            st.dataframe(df_users, use_container_width=True, hide_index=True)
+            st.caption(f"{len(filtered_users)} of {len(all_users_data)} accounts")
 
             csv_users = df_users.to_csv(index=False).encode('utf-8')
             st.download_button(
-                label="📥 Export Users Database to CSV",
+                label="Export CSV",
                 data=csv_users,
                 file_name="fam_fios_users_database.csv",
                 mime="text/csv",
@@ -1847,18 +1853,17 @@ elif portal_mode == "🗄️ Central Users & Members Database":
 
     # --- TAB 2: MEMBERS TABLE ---
     with db_tabs[1]:
-        st.subheader("🏋️ Multi-Branch Gym Members Directory (`members` table)")
-        st.caption("Active memberships enrolled across city franchises with fee accounting and plan durations.")
+        section_header("Members", caption="Memberships across every city and branch, with plan and payment details (table: members).")
 
         c_m1, c_m2, c_m3 = st.columns([2, 1, 1])
         with c_m1:
-            m_search = st.text_input("🔍 Search members (Name, Email, Member ID):", placeholder="e.g. Baner, Hinjewadi, Verma...", key="m_search_box")
+            m_search = st.text_input("Search", placeholder="Name, email, member ID or branch", key="m_search_box")
         with c_m2:
             m_city_opts = ["All Cities"] + sorted(list(set(m["city"] for m in all_members_data if m["city"])))
-            m_city_filt = st.selectbox("Filter by City:", m_city_opts, key="m_city_filt")
+            m_city_filt = st.selectbox("City", m_city_opts, key="m_city_filt")
         with c_m3:
             m_branch_opts = ["All Franchise Branches"] + sorted(list(set(m["branch"] for m in all_members_data if m["branch"])))
-            m_branch_filt = st.selectbox("Filter by Branch:", m_branch_opts, key="m_branch_filt")
+            m_branch_filt = st.selectbox("Branch", m_branch_opts, key="m_branch_filt")
 
         filtered_mems = all_members_data
         if m_city_filt != "All Cities":
@@ -1890,11 +1895,12 @@ elif portal_mode == "🗄️ Central Users & Members Database":
                 }
                 for m in filtered_mems
             ])
-            st.dataframe(df_mems, use_container_width=True)
+            st.dataframe(df_mems, use_container_width=True, hide_index=True)
+            st.caption(f"{len(filtered_mems)} of {len(all_members_data)} members")
 
             csv_mems = df_mems.to_csv(index=False).encode('utf-8')
             st.download_button(
-                label="📥 Export Members Database to CSV",
+                label="Export CSV",
                 data=csv_mems,
                 file_name="fam_fios_members_database.csv",
                 mime="text/csv",
@@ -1905,12 +1911,11 @@ elif portal_mode == "🗄️ Central Users & Members Database":
 
     # --- TAB 3: CITY & FRANCHISE ANALYTICS ---
     with db_tabs[2]:
-        st.subheader("📊 Multi-City & Franchise Intelligence")
-        st.info("💡 Real-time distribution of active gym registrations across cities and individual franchise locations.")
+        section_header("City & franchise analytics", caption="How registrations are distributed across cities and individual branches.")
 
         col_an1, col_an2 = st.columns(2)
         with col_an1:
-            st.markdown("#### 🏙️ **Signups by City**")
+            section_header("Signups by City", level=4)
             city_counts = {}
             for m in all_members_data:
                 c = m.get("city") or "Other / Unassigned"
@@ -1922,7 +1927,7 @@ elif portal_mode == "🗄️ Central Users & Members Database":
                 st.info("No city data recorded yet.")
 
         with col_an2:
-            st.markdown("#### 📍 **Pune Franchises Breakdown (5 Locations)**")
+            section_header("Pune Franchises Breakdown (5 Locations)", level=4)
             pune_branches = [
                 "Baner High Street Franchise",
                 "Kothrud (Paud Road) Franchise",
@@ -1942,7 +1947,7 @@ elif portal_mode == "🗄️ Central Users & Members Database":
             st.bar_chart(df_branch_chart)
 
         st.markdown("---")
-        st.markdown("#### 💰 **Revenue Contribution by Gym Organization**")
+        section_header("Revenue Contribution by Gym Organization", level=4)
         rev_by_tenant = {}
         for m in all_members_data:
             t = m.get("tenant_id", "unknown")
@@ -2389,8 +2394,6 @@ elif portal_mode == "🏋️ Gym Member / User View":
         {"name": "Whey Protein Shake with 1 Banana & 1 tbsp Peanut Butter", "calories": 320, "protein": 29.0, "carbs": 31.0, "fats": 8.5, "category": "Post-Workout"}
     ]
 
-    st.markdown(f"## 🏋️ **Member Fitness Companion — {active_genome.gym_name}**")
-    
     # Check if there is an active member profile in session from registration or DB
     active_mem_session = st.session_state.get("logged_in_member", None)
     
@@ -2424,12 +2427,16 @@ elif portal_mode == "🏋️ Gym Member / User View":
     default_mem_branch = active_mem_session.get("branch_name", "Main Branch") if active_mem_session else (getattr(tenant_mems[0], "branch", "Main Branch") if tenant_mems else "Main Branch")
     default_mem_goal = active_mem_session.get("goal", "Hypertrophy (Muscle Gain)") if active_mem_session else (tenant_mems[0].goal if tenant_mems else "Hypertrophy (Muscle Gain)")
 
-    col_user_header, col_user_badge = st.columns([3, 1])
-    with col_user_header:
-        st.markdown(f"### **Welcome back, {default_mem_name}!** 👋")
-        st.markdown(f"**Member ID:** `{default_mem_id}` &nbsp;|&nbsp; **Home Gym:** `{active_genome.gym_name}` ({default_mem_branch}) &nbsp;|&nbsp; **Goal:** `{default_mem_goal}`")
-    with col_user_badge:
-        st.success("🟢 Active & Verified")
+    page_header(
+        f"Welcome back, {default_mem_name}",
+        f"{active_genome.gym_name} · {default_mem_branch}",
+        eyebrow="Member dashboard",
+        chips=[
+            chip("Member ID", default_mem_id),
+            chip("Goal", default_mem_goal),
+            chip("Active", dot_color="#10B981"),
+        ]
+    )
 
     # 📅 Today's Scheduled Workout Banner (Acc. to Current Day of Week)
     today_dt = datetime.now()
@@ -2441,67 +2448,65 @@ elif portal_mode == "🏋️ Gym Member / User View":
     <div style="background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); border-left: 6px solid {today_routine['badge_color']}; border-radius: 12px; padding: 18px 22px; margin-top: 6px; margin-bottom: 18px; box-shadow: 0 4px 14px rgba(0,0,0,0.25);">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
             <div>
-                <span style="background: {today_routine['badge_color']}22; color: {today_routine['badge_color']}; font-weight: 700; font-size: 0.8rem; padding: 4px 12px; border-radius: 9999px; border: 1px solid {today_routine['badge_color']}55; letter-spacing: 0.5px;">
-                    📅 TODAY'S SCHEDULED WORKOUT &bull; {today_day_name.upper()} ({today_date_str})
+                <span style="background: {today_routine['badge_color']}22; color: {today_routine['badge_color']}; font-weight: 600; font-size: 0.75rem; padding: 4px 12px; border-radius: 9999px; border: 1px solid {today_routine['badge_color']}55; letter-spacing: 0.06em;">
+                    TODAY'S WORKOUT &bull; {today_date_str.upper()}
                 </span>
-                <h3 style="margin: 8px 0 4px 0; color: #F8FAFC; font-size: 1.35rem; font-weight: 700;">
+                <div style="margin: 10px 0 4px 0; color: #F8FAFC; font-size: 1.3rem; font-weight: 700; letter-spacing: -0.01em;">
                     {today_routine['title']}
-                </h3>
-                <p style="margin: 0; color: #94A3B8; font-size: 0.92rem;">
-                    🎯 <b>Target Focus:</b> {today_routine['focus']} &nbsp;|&nbsp; ⏱️ <b>Duration:</b> {today_routine['duration']} &nbsp;|&nbsp; 🔥 <b>Est. Burn:</b> {today_routine['calories_est']}
+                </div>
+                <p style="margin: 0; color: #94A3B8; font-size: 0.9rem;">
+                    <b style="color:#CBD5E1">Focus</b> {today_routine['focus']} &nbsp;&middot;&nbsp; <b style="color:#CBD5E1">Duration</b> {today_routine['duration']} &nbsp;&middot;&nbsp; <b style="color:#CBD5E1">Est. burn</b> {today_routine['calories_est']}
                 </p>
             </div>
             <div>
-                <span style="background: rgba(255,255,255,0.06); color: #E2E8F0; padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; border: 1px solid rgba(255,255,255,0.12); display: inline-block;">
-                    ⚡ {len(today_routine['exercises'])} Exercises Scheduled Today
+                <span style="background: rgba(255,255,255,0.05); color: #E2E8F0; padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; border: 1px solid rgba(255,255,255,0.10); display: inline-block;">
+                    {len(today_routine['exercises'])} exercises
                 </span>
             </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    with st.expander(f"📋 **Quick View: Today's ({today_day_name}) Exercise List & Targets**", expanded=False):
+    with st.expander(f"Today's exercises ({today_day_name})", expanded=False):
         c_ex_cols = st.columns(len(today_routine['exercises']))
         for i, ex in enumerate(today_routine['exercises']):
             with c_ex_cols[i]:
                 st.markdown(f"**{i+1}. {ex['name']}**")
-                st.caption(f"🎯 {ex['sets_reps']}")
-                st.caption(f"⏱️ {ex['rest']}")
+                st.caption(f"{ex['sets_reps']}")
+                st.caption(f"{ex['rest']}")
                 if "video_url" in ex:
-                    st.markdown(f"[▶️ **Form Tutorial**]({ex['video_url']})", help=f"Watch tutorial for {ex['name']}")
-        st.info("💡 **Ready to train?** Open **Tab 4 (🏋️ AI Workout Routine)** to check off exercises & watch video guides, **Tab 2 (📝 Record Workout Log)** to log sets & reps, or **Tab 5 (🥗 Meal & Calorie Tracker)** to upload meal photos, select items from menu & calculate remaining calories!")
+                    st.markdown(f"[Form tutorial ↗]({ex['video_url']})", help=f"Watch tutorial for {ex['name']}")
+        st.info("**Ready to train?** Use **Workout Plan** to check off exercises and watch form videos, **Workout Log** to record sets and reps, or **Nutrition** to log meals and track remaining calories.")
 
-    st.markdown("---")
+    st.markdown("")
 
     member_tabs = st.tabs([
-        "📱 1. Digital Gym Pass & Check-In",
-        "📝 2. Record Workout Log",
-        "📈 3. My Progress & Plateau Detector",
-        "🏋️ 4. AI Workout Routine & Form",
-        "🥗 5. Meal & Calorie Tracker (Photo & Menu)"
+        "Pass & Check-In",
+        "Workout Log",
+        "Progress",
+        "Workout Plan",
+        "Nutrition"
     ])
 
     with member_tabs[0]:
-        st.markdown("### 📱 **Quick Gym Check-In**")
-        st.info("💡 **What this does:** When you arrive at the gym, tap below to check in. This records your attendance and helps the gym auto-scale server power.")
+        section_header("Check in", caption="Check in when you arrive. It records your attendance and helps the gym plan capacity for busy hours.")
 
         c_pass_left, c_pass_right = st.columns([2, 3])
         with c_pass_left:
-            st.markdown(f"""
-            ```
-            ==============================================
-                      OFFICIAL DIGITAL FITNESS PASS       
-            ==============================================
-            MEMBER:   {default_mem_name.upper()}
-            ID:       {default_mem_id}
-            GYM:      {active_genome.gym_name}
-            BRANCH:   {default_mem_branch}
-            STATUS:   ACTIVE / VERIFIED ✅
-            BARCODE:  ||| ||||| |||| |||| ||| ||||||| |||
-            ==============================================
-            ```
-            """)
-            if st.button("📍 Check In to Gym Right Now", type="primary", use_container_width=True):
+            pass_info = active_mem_session or {}
+            membership_pass(
+                member_name=default_mem_name,
+                member_id=default_mem_id,
+                gym_name=active_genome.gym_name,
+                location=default_mem_branch,
+                address=pass_info.get("branch_address", active_genome.gym_name),
+                phone=pass_info.get("phone", "—"),
+                plan=pass_info.get("plan_name", "Standard Access"),
+                amount_paid=f"₹{pass_info['total_payable']:,.2f}" if isinstance(pass_info.get("total_payable"), (int, float)) else "—",
+                valid_until=pass_info.get("expiry_date", "—"),
+            )
+            st.markdown("")
+            if st.button("Check in now", type="primary", use_container_width=True):
                 evt = TenantEvent(
                     tenant_id=active_tenant_id,
                     role_context="member",
@@ -2509,21 +2514,22 @@ elif portal_mode == "🏋️ Gym Member / User View":
                     operational_params={"hour": datetime.utcnow().hour}
                 )
                 tige.update_genome_from_event(evt)
-                st.balloons()
-                st.success(f"✅ Check-in recorded at {datetime.now().strftime('%I:%M %p')}! Enjoy your workout!")
+                st.success(f"Checked in at {datetime.now().strftime('%I:%M %p')}. Enjoy your workout.")
 
         with c_pass_right:
-            st.markdown("#### 🕒 **Live Gym Crowd Level**")
-            crowd_pct = int(usage.peak_hour_ratio * 100)
-            st.write(f"Estimated Peak Crowd Level Today: **{crowd_pct}% concentration**")
-            if crowd_pct > 60:
-                st.warning("⚠️ High peak volume window: Gym is currently busy.")
-            else:
-                st.success("🟢 Ideal workout window: Plenty of equipment available!")
+            with st.container(border=True):
+                section_header("Gym crowd level", level=4)
+                crowd_pct = int(usage.peak_hour_ratio * 100)
+                st.write(f"Expected peak-hour occupancy today: **{crowd_pct}%**")
+                st.progress(min(1.0, crowd_pct / 100))
+                if crowd_pct > 60:
+                    st.warning("Busy right now — expect a wait for popular equipment.")
+                else:
+                    st.success("Good time to train — plenty of equipment available.")
 
     with member_tabs[1]:
-        st.markdown("### 📝 **Log Workout Exercises (Dynamic Week-Wise)**")
-        st.info("💡 Log your exercises week-by-week. Total volume is calculated dynamically and syncs directly into your **Progress & Plateau Tracker (Tab 3)**.")
+        section_header("Workout log", caption="Record exercises by week; volume is calculated for you.")
+        st.caption("Totals feed straight into the **Progress** tab.")
 
         if "member_weekly_exercise_logs" not in st.session_state:
             st.session_state.member_weekly_exercise_logs = {
@@ -2559,7 +2565,7 @@ elif portal_mode == "🏋️ Gym Member / User View":
         c_wk_pick, c_wk_status = st.columns([2, 2])
         with c_wk_pick:
             sel_target_week = st.selectbox(
-                "📅 **Select Training Week to Log:**",
+                "Training week",
                 ["Week 4 (Current Week / Today)", "Week 3", "Week 2", "Week 1 (Baseline)"],
                 index=0,
                 key="sel_log_week_active"
@@ -2567,21 +2573,21 @@ elif portal_mode == "🏋️ Gym Member / User View":
             wk_key = "Week 4" if "Week 4" in sel_target_week else ("Week 1" if "Week 1" in sel_target_week else ("Week 2" if "Week 2" in sel_target_week else "Week 3"))
         with c_wk_status:
             w_total_curr = sum(e["Volume"] for e in st.session_state.member_weekly_exercise_logs.get(wk_key, []))
-            st.markdown(f"**Target Period:** `{wk_key}` &nbsp;|&nbsp; Cumulative Logged: **`{w_total_curr:,.0f} kg`**")
+            st.metric(f"{wk_key} volume logged", f"{w_total_curr:,.0f} kg")
 
         with st.form("member_log_exercise"):
             c_ex1, c_ex2 = st.columns(2)
             with c_ex1:
-                sel_exercise = st.selectbox("Select Exercise", all_exercise_options)
-                num_sets = st.number_input("Number of Sets", min_value=1, max_value=15, value=4)
+                sel_exercise = st.selectbox("Exercise", all_exercise_options)
+                num_sets = st.number_input("Sets", min_value=1, max_value=15, value=4)
             with c_ex2:
-                num_reps = st.number_input("Reps per Set", min_value=1, max_value=50, value=8)
-                weight_kg = st.number_input("Weight Used (kg)", min_value=0.0, max_value=500.0, value=65.0, step=2.5)
+                num_reps = st.number_input("Reps per set", min_value=1, max_value=50, value=8)
+                weight_kg = st.number_input("Weight (kg)", min_value=0.0, max_value=500.0, value=65.0, step=2.5)
 
             session_volume = num_sets * num_reps * weight_kg
-            st.markdown(f"**Calculated Volume for this exercise:** `{session_volume:,.1f} kg lifted` ({num_sets} sets × {num_reps} reps × {weight_kg:g} kg)")
+            st.caption(f"Volume: **{session_volume:,.1f} kg** ({num_sets} sets × {num_reps} reps × {weight_kg:g} kg)")
 
-            save_log = st.form_submit_button(f"➕ Add Exercise to {wk_key} Log", use_container_width=True, type="primary")
+            save_log = st.form_submit_button(f"Add to {wk_key}", use_container_width=True, type="primary")
             if save_log:
                 evt = TenantEvent(
                     tenant_id=active_tenant_id,
@@ -2628,7 +2634,7 @@ elif portal_mode == "🏋️ Gym Member / User View":
                 st.session_state.last_saved_prog_time = datetime.now().strftime("%I:%M:%S %p")
                 
                 new_wk_total = sum(e["Volume"] for e in st.session_state.member_weekly_exercise_logs[wk_key])
-                st.toast(f"✅ Added {sel_exercise} (+{session_volume:,.0f} kg). {wk_key} Total: {new_wk_total:,.0f} kg!", icon="🏋️")
+                st.toast(f"Added {sel_exercise} (+{session_volume:,.0f} kg). {wk_key} Total: {new_wk_total:,.0f} kg!", icon="🏋️")
                 st.rerun()
 
         # Display Live Week-Wise Logged Breakdown
@@ -2640,7 +2646,7 @@ elif portal_mode == "🏋️ Gym Member / User View":
             st.markdown("---")
             c_hist_title, c_hist_clear = st.columns([3, 1])
             with c_hist_title:
-                st.markdown("#### 📊 **Dynamic Week-Wise Workout Summary**")
+                section_header("Weekly summary", level=4)
                 
                 cw1, cw2, cw3, cw4 = st.columns(4)
                 t1 = sum(e["Volume"] for e in st.session_state.member_weekly_exercise_logs["Week 1"])
@@ -2653,7 +2659,7 @@ elif portal_mode == "🏋️ Gym Member / User View":
                 with cw4: st.metric("Week 4 Total", f"{t4:,.0f} kg" if t4 > 0 else f"{st.session_state.inp_prog_s4:,.0f} kg (Live)")
 
             with c_hist_clear:
-                if st.button("🗑️ Clear All Logs", use_container_width=True):
+                if st.button("Clear all logs", use_container_width=True):
                     st.session_state.member_weekly_exercise_logs = {"Week 1": [], "Week 2": [], "Week 3": [], "Week 4": []}
                     st.session_state.inp_prog_s1 = 1400
                     st.session_state.inp_prog_s2 = 1475
@@ -2667,18 +2673,16 @@ elif portal_mode == "🏋️ Gym Member / User View":
             df_display["Volume"] = df_display["Volume"].apply(lambda x: f"{x:,.0f} kg")
             st.dataframe(df_display, use_container_width=True, hide_index=True)
 
-            st.success("👉 **Ready to see your progress graph?** Open **Tab 3 (📈 My Progress & Plateau Detector)** to see your dynamic week-wise volume plotted on your overload trajectory!")
+            st.success("**Want to see the trend?** Open the **Progress** tab to see your weekly volume plotted against the progressive-overload target.")
 
     with member_tabs[2]:
-        st.markdown("### 📈 **Progressive Overload & Muscle Plateau Detector**")
-        st.markdown(
-            "Track your weekly lifted volume (*Sets × Reps × Weight*). "
-            "Our neural engine monitors your trajectory across workout sessions to verify active progressive overload "
-            "and automatically prescribe deload adjustments before physical stagnation occurs."
+        section_header(
+            "Progress & plateau detection",
+            caption="Tracks weekly volume (sets × reps × weight) to confirm progressive overload and recommend a deload before you stall."
         )
 
         # 1. 1-Click Interactive Presets / Scenarios (Calibrated Dynamically to Current Baseline)
-        st.markdown("##### ⚡ **Interactive Scenarios (Calibrated Dynamically to Your Baseline):**")
+        section_header("Scenarios", level=5, caption="Load a sample trajectory based on your current baseline.")
         col_pre1, col_pre2, col_pre3, col_pre4 = st.columns(4)
         
         # Initialize default session values dynamically calibrated to real-world workout volume
@@ -2706,53 +2710,53 @@ elif portal_mode == "🏋️ Gym Member / User View":
         dyn_base = max(int(st.session_state.inp_prog_s1), 500)
 
         with col_pre1:
-            if st.button("🚀 Progressive Overload", use_container_width=True, help=f"Simulate steady science-backed +5% weekly growth from your {dyn_base:,} kg baseline"):
+            if st.button("Progressive Overload", use_container_width=True, help=f"Simulate steady science-backed +5% weekly growth from your {dyn_base:,} kg baseline"):
                 st.session_state.inp_prog_s1 = dyn_base
                 st.session_state.inp_prog_s2 = int(round(dyn_base * 1.05 / 25) * 25)
                 st.session_state.inp_prog_s3 = int(round(dyn_base * 1.10 / 25) * 25)
                 st.session_state.inp_prog_s4 = int(round(dyn_base * 1.16 / 25) * 25)
-                st.toast(f"Dynamic Progressive Overload (+5% week-wise from {dyn_base:,} kg) loaded! Click '💾 Save & Update My Workout Progress'.", icon="📝")
+                st.toast(f"Dynamic Progressive Overload (+5% week-wise from {dyn_base:,} kg) loaded. Click Save progress to update the chart.", icon="📝")
                 st.rerun()
 
         with col_pre2:
-            if st.button("⚠️ Plateau Stagnation", use_container_width=True, help=f"Simulate complete training plateau (0% gain) at your {dyn_base:,} kg baseline"):
+            if st.button("Plateau Stagnation", use_container_width=True, help=f"Simulate complete training plateau (0% gain) at your {dyn_base:,} kg baseline"):
                 st.session_state.inp_prog_s1 = dyn_base
                 st.session_state.inp_prog_s2 = dyn_base
                 st.session_state.inp_prog_s3 = dyn_base
                 st.session_state.inp_prog_s4 = dyn_base
-                st.toast(f"Dynamic Plateau scenario ({dyn_base:,} kg flatline across all 4 weeks) loaded! Click '💾 Save & Update My Workout Progress'.", icon="📝")
+                st.toast(f"Dynamic Plateau scenario ({dyn_base:,} kg flatline across all 4 weeks) loaded. Click Save progress to update the chart.", icon="📝")
                 st.rerun()
 
         with col_pre3:
-            if st.button("💥 Aggressive PR Surge", use_container_width=True, help=f"Simulate rapid compounding PR gains (+13-15% per week) from your {dyn_base:,} kg baseline"):
+            if st.button("Aggressive PR Surge", use_container_width=True, help=f"Simulate rapid compounding PR gains (+13-15% per week) from your {dyn_base:,} kg baseline"):
                 st.session_state.inp_prog_s1 = dyn_base
                 st.session_state.inp_prog_s2 = int(round(dyn_base * 1.13 / 25) * 25)
                 st.session_state.inp_prog_s3 = int(round(dyn_base * 1.28 / 25) * 25)
                 st.session_state.inp_prog_s4 = int(round(dyn_base * 1.45 / 25) * 25)
-                st.toast(f"Dynamic PR Surge (+13-15% weekly leaps from {dyn_base:,} kg) loaded! Click '💾 Save & Update My Workout Progress'.", icon="📝")
+                st.toast(f"Dynamic PR Surge (+13-15% weekly leaps from {dyn_base:,} kg) loaded. Click Save progress to update the chart.", icon="📝")
                 st.rerun()
 
         with col_pre4:
-            if st.button("🧪 Sample Test (100-300kg)", use_container_width=True, help="Load lightweight 100-300 kg test trajectory into inputs"):
+            if st.button("Sample Test (100-300kg)", use_container_width=True, help="Load lightweight 100-300 kg test trajectory into inputs"):
                 st.session_state.inp_prog_s1 = 100
                 st.session_state.inp_prog_s2 = 150
                 st.session_state.inp_prog_s3 = 200
                 st.session_state.inp_prog_s4 = 300
-                st.toast("Sample test loaded into inputs! Click '💾 Save & Update My Workout Progress' below to update graph.", icon="📝")
+                st.toast("Sample values loaded. Click Save progress to update the chart.", icon="📝")
                 st.rerun()
 
         st.markdown("")
 
         # 2. Session Volume Inputs with Real-time Deltas
-        st.markdown("##### 📝 **Recent Workout Volume Logs (kg Lifted = Sets × Reps × Weight across 4 Weeks):**")
+        section_header("Weekly volume (kg)", level=5, caption="Sets × reps × weight for each of the last four weeks.")
         c_v1, c_v2, c_v3, c_v4 = st.columns(4)
         
         with c_v1:
             s1_vol = st.number_input("Session 1 (Week 1 Baseline)", min_value=0, max_value=25000, step=25, key="inp_prog_s1", help="Sets × Reps × Weight (kg)")
-            st.caption("🏁 **Week 1 Baseline**")
+            st.caption("Baseline week")
             w1_log = sum(e["Volume"] for e in st.session_state.get("member_weekly_exercise_logs", {}).get("Week 1", []))
             if w1_log > 0:
-                st.caption(f"⚡ *Live synced: {w1_log:,.0f} kg*")
+                st.caption(f"*Live synced: {w1_log:,.0f} kg*")
         with c_v2:
             s2_vol = st.number_input("Session 2 (Week 2)", min_value=0, max_value=25000, step=25, key="inp_prog_s2", help="Sets × Reps × Weight (kg)")
             d2_input = s2_vol - s1_vol
@@ -2761,7 +2765,7 @@ elif portal_mode == "🏋️ Gym Member / User View":
             st.caption(f"{d2_icon} **Δ vs W1:** `{d2_input:+,.0f} kg ({p2_input:+.1f}%)`")
             w2_log = sum(e["Volume"] for e in st.session_state.get("member_weekly_exercise_logs", {}).get("Week 2", []))
             if w2_log > 0:
-                st.caption(f"⚡ *Live synced: {w2_log:,.0f} kg*")
+                st.caption(f"*Live synced: {w2_log:,.0f} kg*")
         with c_v3:
             s3_vol = st.number_input("Session 3 (Week 3)", min_value=0, max_value=25000, step=25, key="inp_prog_s3", help="Sets × Reps × Weight (kg)")
             d3_input = s3_vol - s2_vol
@@ -2770,7 +2774,7 @@ elif portal_mode == "🏋️ Gym Member / User View":
             st.caption(f"{d3_icon} **Δ vs W2:** `{d3_input:+,.0f} kg ({p3_input:+.1f}%)`")
             w3_log = sum(e["Volume"] for e in st.session_state.get("member_weekly_exercise_logs", {}).get("Week 3", []))
             if w3_log > 0:
-                st.caption(f"⚡ *Live synced: {w3_log:,.0f} kg*")
+                st.caption(f"*Live synced: {w3_log:,.0f} kg*")
         with c_v4:
             s4_vol = st.number_input("Session 4 (Week 4 Latest)", min_value=0, max_value=25000, step=25, key="inp_prog_s4", help="Sets × Reps × Weight (kg)")
             d4_input = s4_vol - s3_vol
@@ -2779,7 +2783,7 @@ elif portal_mode == "🏋️ Gym Member / User View":
             st.caption(f"{d4_icon} **Δ vs W3:** `{d4_input:+,.0f} kg ({p4_input:+.1f}%)`")
             w4_log = sum(e["Volume"] for e in st.session_state.get("member_weekly_exercise_logs", {}).get("Week 4", []))
             if w4_log > 0:
-                st.caption(f"⚡ *Live synced from Tab 2 ({w4_log:,.0f} kg)*")
+                st.caption(f"*Synced from Workout Log ({w4_log:,.0f} kg)*")
 
         # Check for unsaved changes between input boxes and saved progress
         current_inputs = [int(s1_vol), int(s2_vol), int(s3_vol), int(s4_vol)]
@@ -2789,16 +2793,16 @@ elif portal_mode == "🏋️ Gym Member / User View":
         c_save_btn, c_save_status = st.columns([1.5, 2.5])
         with c_save_btn:
             save_prog_clicked = st.button(
-                "💾 Save & Update My Workout Progress",
+                "Save progress",
                 type="primary",
                 use_container_width=True,
                 help="Saves your current volume logs and re-renders the trajectory graph and AI plateau analysis"
             )
         with c_save_status:
             if has_unsaved_changes:
-                st.warning("⚠️ **Unsaved Changes**: You adjusted session numbers above. Click **'Save & Update My Workout Progress'** to reflect these changes on the graph!")
+                st.warning("**Unsaved changes.** Click **Save progress** to update the chart.")
             else:
-                st.success(f"🟢 **Graph is Up-to-Date with Saved Progress** (Last Saved: `{st.session_state.last_saved_prog_time}`)")
+                st.success(f"**Chart is up to date** · last saved {st.session_state.last_saved_prog_time}")
 
         if save_prog_clicked:
             st.session_state.saved_prog_volumes = current_inputs
@@ -2822,10 +2826,10 @@ elif portal_mode == "🏋️ Gym Member / User View":
             )
             tige.update_genome_from_event(evt)
             if evt_is_plateau:
-                st.toast("⚠️ Plateau detected: Engine recalibrated with deload recommendation!", icon="🔄")
+                st.toast("Plateau detected: Engine recalibrated with deload recommendation!", icon="🔄")
             else:
-                st.toast("🎉 Progressive overload recorded! Engine updated.", icon="🚀")
-            st.toast("✅ Workout progress successfully saved! Graph and metrics updated.", icon="💾")
+                st.toast("Progressive overload recorded! Engine updated.", icon="🚀")
+            st.toast("Workout progress successfully saved! Graph and metrics updated.", icon="💾")
             st.rerun()
 
         # The graph and metrics are calculated STRICTLY from saved_prog_volumes
@@ -2863,33 +2867,33 @@ elif portal_mode == "🏋️ Gym Member / User View":
         kpi_c1, kpi_c2, kpi_c3, kpi_c4 = st.columns(4)
         with kpi_c1:
             st.metric(
-                label="🏋️ Latest Saved Volume",
+                label="Latest Saved Volume",
                 value=f"{volumes[-1]:,.0f} kg",
                 delta=f"{diffs[-1]:+,.0f} kg vs S3"
             )
         with kpi_c2:
             st.metric(
-                label="📈 Progression Velocity",
+                label="Progression Velocity",
                 value=f"{avg_delta:+,.1f} kg/sess",
                 delta="Target: > +1.0 kg" if avg_delta > 1.0 else "⚠️ Stagnant Growth",
                 delta_color="normal" if avg_delta > 1.0 else "inverse"
             )
         with kpi_c3:
             st.metric(
-                label="🎯 4-Session Total Volume",
+                label="4-Session Total Volume",
                 value=f"{total_lifted:,.0f} kg",
                 delta=f"Net: {net_growth:+,.0f} kg ({net_growth_pct:+.1f}%)"
             )
         with kpi_c4:
             if is_plateau:
-                st.metric(label="🛡️ AI Trajectory State", value="Plateau Stagnation ⚠️", delta="Intervention Needed", delta_color="inverse")
+                st.metric(label="AI Trajectory State", value="Plateau Stagnation ⚠️", delta="Intervention Needed", delta_color="inverse")
             else:
-                st.metric(label="🛡️ AI Trajectory State", value="Progressive Overload 🟢", delta="Optimal Stimulus", delta_color="normal")
+                st.metric(label="AI Trajectory State", value="Progressive Overload 🟢", delta="Optimal Stimulus", delta_color="normal")
 
         st.markdown("")
 
         # 5. Easy-to-Understand High-Clarity Visual Graph
-        st.markdown("##### 📊 **Volume Trajectory vs. Optimal +5% Overload Benchmark**")
+        section_header("Volume Trajectory vs. Optimal +5% Overload Benchmark", level=5)
 
         # Visual Legend Banner (Clear color-coded explanation)
         status_pill = '<span style="background: rgba(16, 185, 129, 0.2); color: #6EE7B7; border: 1px solid rgba(16, 185, 129, 0.4); padding: 4px 12px; border-radius: 20px; font-weight: bold; font-size: 12px;">🟢 STATUS: OPTIMAL OVERLOAD</span>' if not is_plateau else '<span style="background: rgba(239, 68, 68, 0.2); color: #FCA5A5; border: 1px solid rgba(239, 68, 68, 0.4); padding: 4px 12px; border-radius: 20px; font-weight: bold; font-size: 12px;">⚠️ STATUS: PLATEAU STAGNATION</span>'
@@ -2899,11 +2903,11 @@ elif portal_mode == "🏋️ Gym Member / User View":
             <div style="display: flex; gap: 24px; align-items: center; flex-wrap: wrap;">
                 <span style="display: flex; align-items: center; gap: 8px; color: #F8FAFC; font-size: 13px; font-weight: 600;">
                     <span style="display: inline-block; width: 14px; height: 14px; background: {'#EF4444' if is_plateau else '#10B981'}; border-radius: 3px;"></span>
-                    {'🔴 Stagnant Volume (kg)' if is_plateau else '🟢 Your Lifted Volume (Actual kg)'}
+                    {'Stagnant Volume (kg)' if is_plateau else 'Your Lifted Volume (Actual kg)'}
                 </span>
                 <span style="display: flex; align-items: center; gap: 8px; color: #94A3B8; font-size: 13px; font-weight: 600;">
                     <span style="display: inline-block; width: 20px; height: 0; border-top: 3px dashed #38BDF8;"></span>
-                    🔵 Science-Based +5% Overload Goal
+                    Science-Based +5% Overload Goal
                 </span>
             </div>
             {status_pill}
@@ -3083,19 +3087,19 @@ elif portal_mode == "🏋️ Gym Member / User View":
         st.markdown(f"""
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 10px; margin-bottom: 20px;">
             <div style="background: rgba(15, 23, 42, 0.6); padding: 12px 16px; border-radius: 8px; border-left: 4px solid {'#EF4444' if is_plateau else '#10B981'};">
-                <strong style="color: #F8FAFC; font-size: 13px;">{'🔴 Plateau Stagnation' if is_plateau else '📈 Progressive Overload'}</strong>
+                <strong style="color: #F8FAFC; font-size: 13px;">{'Plateau Stagnation' if is_plateau else 'Progressive Overload'}</strong>
                 <p style="color: #94A3B8; font-size: 12px; margin: 4px 0 0 0; line-height: 1.4;">
                     {'Volume has stalled. Your neuromuscular system needs a deload.' if is_plateau else 'Green line is climbing! You are consistently lifting more weight or reps.'}
                 </p>
             </div>
             <div style="background: rgba(15, 23, 42, 0.6); padding: 12px 16px; border-radius: 8px; border-left: 4px solid #38BDF8;">
-                <strong style="color: #F8FAFC; font-size: 13px;">🎯 +5% Overload Benchmark (Dashed)</strong>
+                <strong style="color: #F8FAFC; font-size: 13px;">+5% Overload Benchmark (Dashed)</strong>
                 <p style="color: #94A3B8; font-size: 12px; margin: 4px 0 0 0; line-height: 1.4;">
                     {'Currently below the recommended progression curve.' if is_plateau else 'You are above the science-based target for muscle hypertrophy.'}
                 </p>
             </div>
             <div style="background: rgba(15, 23, 42, 0.6); padding: 12px 16px; border-radius: 8px; border-left: 4px solid #8B5CF6;">
-                <strong style="color: #F8FAFC; font-size: 13px;">🏆 Net 4-Session Growth</strong>
+                <strong style="color: #F8FAFC; font-size: 13px;">Net 4-Session Growth</strong>
                 <p style="color: #94A3B8; font-size: 12px; margin: 4px 0 0 0; line-height: 1.4;">
                     Overall change: <span style="color: {'#FCA5A5' if is_plateau else '#6EE7B7'}; font-weight: bold;">{net_growth:+,.0f} kg ({net_growth_pct:+.1f}%)</span> across 4 sessions.
                 </p>
@@ -3109,10 +3113,10 @@ elif portal_mode == "🏋️ Gym Member / User View":
             <div style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(245, 158, 11, 0.12) 100%); border: 1px solid rgba(239, 68, 68, 0.45); border-radius: 12px; padding: 20px; margin-top: 15px; margin-bottom: 20px;">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
                     <div style="display: flex; align-items: center; gap: 12px;">
-                        <span style="font-size: 28px;">⚠️</span>
+                        <span style="width: 10px; height: 10px; border-radius: 50%; background: #EF4444; box-shadow: 0 0 0 4px rgba(239,68,68,0.2); display: inline-block;"></span>
                         <div>
-                            <h4 style="margin: 0; color: #FCA5A5; font-weight: 700; font-size: 18px;">FAM-FIOS Neural Plateau Alert: Stagnation Detected</h4>
-                            <span style="font-size: 13px; color: #CBD5E1;">Triggered via Closed-Loop FAFIE Motor Trajectory Classifier</span>
+                            <div style="margin: 0; color: #FCA5A5; font-weight: 700; font-size: 17px;">Plateau detected</div>
+                            <span style="font-size: 13px; color: #CBD5E1;">Flagged by the FAFIE trajectory classifier</span>
                         </div>
                     </div>
                     <span style="background: rgba(239, 68, 68, 0.3); color: #FCA5A5; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; border: 1px solid rgba(239, 68, 68, 0.5);">STATUS: DELOAD RECOMMENDED</span>
@@ -3122,15 +3126,15 @@ elif portal_mode == "🏋️ Gym Member / User View":
                 </p>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 12px;">
                     <div style="background: rgba(15, 23, 42, 0.65); padding: 14px; border-radius: 8px; border-left: 4px solid #EF4444;">
-                        <strong style="color: #F8FAFC; font-size: 14px;">1. 🔄 Strategic Deload (Week 5)</strong>
+                        <strong style="color: #F8FAFC; font-size: 14px;">1. Strategic Deload (Week 5)</strong>
                         <p style="color: #94A3B8; font-size: 12px; margin: 4px 0 0 0; line-height: 1.4;">Reduce total lifted volume by 40-50% for 5-7 days. Retain form precision while allowing central nervous system (CNS) glycogen resensitization.</p>
                     </div>
                     <div style="background: rgba(15, 23, 42, 0.65); padding: 14px; border-radius: 8px; border-left: 4px solid #F59E0B;">
-                        <strong style="color: #F8FAFC; font-size: 14px;">2. 📐 Exercise Angle Rotation</strong>
+                        <strong style="color: #F8FAFC; font-size: 14px;">2. Exercise Angle Rotation</strong>
                         <p style="color: #94A3B8; font-size: 12px; margin: 4px 0 0 0; line-height: 1.4;">Rotate primary compound movement: Swap Flat Barbell Bench to 30° Incline Dumbbell Press; swap Back Squat to Front Squats or Bulgarian Split Squats.</p>
                     </div>
                     <div style="background: rgba(15, 23, 42, 0.65); padding: 14px; border-radius: 8px; border-left: 4px solid #3B82F6;">
-                        <strong style="color: #F8FAFC; font-size: 14px;">3. ⏱️ Tempo & Time Under Tension</strong>
+                        <strong style="color: #F8FAFC; font-size: 14px;">3. Tempo & Time Under Tension</strong>
                         <p style="color: #94A3B8; font-size: 12px; margin: 4px 0 0 0; line-height: 1.4;">Shift to a 3-0-1-0 tempo (3-second controlled eccentric lowering phase) to recruit stubborn high-threshold fast-twitch motor units.</p>
                     </div>
                 </div>
@@ -3141,10 +3145,10 @@ elif portal_mode == "🏋️ Gym Member / User View":
             <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(59, 130, 246, 0.12) 100%); border: 1px solid rgba(16, 185, 129, 0.45); border-radius: 12px; padding: 20px; margin-top: 15px; margin-bottom: 20px;">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
                     <div style="display: flex; align-items: center; gap: 12px;">
-                        <span style="font-size: 28px;">🎉</span>
+                        <span style="width: 10px; height: 10px; border-radius: 50%; background: #10B981; box-shadow: 0 0 0 4px rgba(16,185,129,0.2); display: inline-block;"></span>
                         <div>
-                            <h4 style="margin: 0; color: #6EE7B7; font-weight: 700; font-size: 18px;">Progressive Overload Active: Outstanding Growth Trajectory!</h4>
-                            <span style="font-size: 13px; color: #CBD5E1;">Neural Trajectory Verified & Validated by FAFIE Engine</span>
+                            <div style="margin: 0; color: #6EE7B7; font-weight: 700; font-size: 17px;">Progressive overload on track</div>
+                            <span style="font-size: 13px; color: #CBD5E1;">Trajectory verified by the FAFIE engine</span>
                         </div>
                     </div>
                     <span style="background: rgba(16, 185, 129, 0.3); color: #6EE7B7; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; border: 1px solid rgba(16, 185, 129, 0.5);">GROWTH VELOCITY: OPTIMAL</span>
@@ -3154,16 +3158,16 @@ elif portal_mode == "🏋️ Gym Member / User View":
                 </p>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 12px;">
                     <div style="background: rgba(15, 23, 42, 0.65); padding: 14px; border-radius: 8px; border-left: 4px solid #10B981;">
-                        <strong style="color: #F8FAFC; font-size: 14px;">1. 🎯 Incremental Micro-Loading</strong>
+                        <strong style="color: #F8FAFC; font-size: 14px;">1. Incremental Micro-Loading</strong>
                         <p style="color: #94A3B8; font-size: 12px; margin: 4px 0 0 0; line-height: 1.4;">Add 1.25 kg – 2.5 kg plates to your first 2 working sets next week to maintain compounding mechanical tension.</p>
                     </div>
                     <div style="background: rgba(15, 23, 42, 0.65); padding: 14px; border-radius: 8px; border-left: 4px solid #3B82F6;">
-                        <strong style="color: #F8FAFC; font-size: 14px;">2. 🥩 Protein & Recovery Buffer</strong>
+                        <strong style="color: #F8FAFC; font-size: 14px;">2. Protein & Recovery Buffer</strong>
                         <p style="color: #94A3B8; font-size: 12px; margin: 4px 0 0 0; line-height: 1.4;">Fuel your muscular repair with 1.8–2.2g of protein per kg of bodyweight, along with 7.5+ hours of restorative sleep.</p>
                     </div>
                     <div style="background: rgba(15, 23, 42, 0.65); padding: 14px; border-radius: 8px; border-left: 4px solid #8B5CF6;">
-                        <strong style="color: #F8FAFC; font-size: 14px;">3. 📊 Continuous Logging</strong>
-                        <p style="color: #94A3B8; font-size: 12px; margin: 4px 0 0 0; line-height: 1.4;">Keep recording your reps in Tab 2 so the autonomous closed loop can forecast your 1-rep maximums.</p>
+                        <strong style="color: #F8FAFC; font-size: 14px;">3. Continuous Logging</strong>
+                        <p style="color: #94A3B8; font-size: 12px; margin: 4px 0 0 0; line-height: 1.4;">Keep recording your sets in the Workout Log so the closed loop can forecast your 1-rep maximums.</p>
                     </div>
                 </div>
             </div>
@@ -3172,9 +3176,9 @@ elif portal_mode == "🏋️ Gym Member / User View":
 
 
         # 7. Educational Primer Expander
-        with st.expander("📖 **How FAM-FIOS AI Progress Tracking Works (Click to Learn)**", expanded=False):
+        with st.expander("How progress tracking works", expanded=False):
             st.markdown("""
-            ### 🏋️ **Understanding Volume & Progressive Overload**
+            ### **Understanding Volume & Progressive Overload**
             
             1. **What is Total Volume?**
                - **Formula:** $\\text{Volume (kg)} = \\text{Sets} \\times \\text{Reps} \\times \\text{Weight (kg)}$
@@ -3191,8 +3195,7 @@ elif portal_mode == "🏋️ Gym Member / User View":
             """)
 
     with member_tabs[3]:
-        st.markdown("### 🏋️ **AI Workout Routine & Exercise Guide**")
-        st.caption(f"Personalized training regimen calibrated for **{default_mem_name}** &bull; Goal: **{default_mem_goal}**")
+        section_header("Workout plan", caption=f"Personalized for {default_mem_name} · Goal: {default_mem_goal}")
 
         days_list = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
         today_idx = days_list.index(today_day_name) if today_day_name in days_list else 0
@@ -3200,7 +3203,7 @@ elif portal_mode == "🏋️ Gym Member / User View":
         c_day_sel, c_day_badge = st.columns([3, 1])
         with c_day_sel:
             selected_day = st.radio(
-                "📅 **Select Training Day:**",
+                "Training day",
                 days_list,
                 index=today_idx,
                 horizontal=True,
@@ -3208,7 +3211,7 @@ elif portal_mode == "🏋️ Gym Member / User View":
             )
         with c_day_badge:
             if selected_day == today_day_name:
-                st.success(f"📍 **Today ({today_day_name})**")
+                st.success(f"**Today ({today_day_name})**")
             else:
                 st.info(f"Viewing: **{selected_day}**")
 
@@ -3217,17 +3220,16 @@ elif portal_mode == "🏋️ Gym Member / User View":
         # Top summary card for the selected day
         st.markdown(f"""
         <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; padding: 14px 18px; margin-bottom: 16px;">
-            <h4 style="margin: 0 0 6px 0; color: #F1F5F9;">🏋️ {selected_day}'s Focus: {current_routine['title']}</h4>
+            <h4 style="margin: 0 0 6px 0; color: #F1F5F9;">{selected_day}'s Focus: {current_routine['title']}</h4>
             <p style="margin: 0; color: #94A3B8; font-size: 0.9rem;">
-                🎯 <b>Target:</b> {current_routine['focus']} &nbsp;&bull;&nbsp; ⏱️ <b>Estimated Duration:</b> {current_routine['duration']} &nbsp;&bull;&nbsp; 🔥 <b>Estimated Caloric Burn:</b> {current_routine['calories_est']}
+                <b>Target:</b> {current_routine['focus']} &nbsp;&bull;&nbsp; <b>Estimated Duration:</b> {current_routine['duration']} &nbsp;&bull;&nbsp; <b>Estimated Caloric Burn:</b> {current_routine['calories_est']}
             </p>
         </div>
         """, unsafe_allow_html=True)
 
         c_guide1, c_guide2 = st.columns([3, 2])
         with c_guide1:
-            st.markdown(f"#### 🏋️ **{selected_day}'s Exercise Plan & Checklist**")
-            st.caption("Check off exercises as you complete your workout sets:")
+            section_header(f"{selected_day}'s exercises", level=4, caption="Tick each exercise as you finish it.")
 
             completed_count = 0
             for idx, ex in enumerate(current_routine["exercises"]):
@@ -3241,53 +3243,51 @@ elif portal_mode == "🏋️ Gym Member / User View":
                     completed_count += 1
                 st.markdown(f"""
                 <div style="background: rgba(15, 23, 42, 0.45); border-left: 3px solid #38BDF8; border-radius: 6px; padding: 10px 14px; margin-top: -6px; margin-bottom: 8px;">
-                    <div style="font-size: 0.84rem; color: #94A3B8;">🎯 <b>Target:</b> {ex['target']} &nbsp;|&nbsp; ⏱️ <b>Rest:</b> {ex['rest']}</div>
-                    <div style="font-size: 0.82rem; color: #CBD5E1; margin-top: 4px;">💡 <b>Form Cue:</b> <i>{ex['cue']}</i></div>
+                    <div style="font-size: 0.84rem; color: #94A3B8;"><b>Target:</b> {ex['target']} &nbsp;|&nbsp; <b>Rest:</b> {ex['rest']}</div>
+                    <div style="font-size: 0.82rem; color: #CBD5E1; margin-top: 4px;"><b>Form Cue:</b> <i>{ex['cue']}</i></div>
                     <div style="margin-top: 8px;">
                         <a href="{ex.get('video_url', 'https://youtube.com')}" target="_blank" style="display: inline-flex; align-items: center; gap: 6px; background: rgba(239, 68, 68, 0.15); color: #FCA5A5; border: 1px solid rgba(239, 68, 68, 0.35); padding: 4px 10px; border-radius: 6px; text-decoration: none; font-size: 0.80rem; font-weight: 600;">
-                            <span style="color: #EF4444; font-size: 0.95rem;">▶️</span> Watch YouTube Form Tutorial: <b>{ex.get('video_title', 'Video Guide')}</b> ↗
+                            <span style="color: #EF4444; font-size: 0.85rem;">▶</span> Form tutorial: <b>{ex.get('video_title', 'Video Guide')}</b> ↗
                         </a>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
                 if ex.get("video_url"):
-                    with st.expander(f"📺 Watch Form Video: {ex['name']}", expanded=False):
+                    with st.expander(f"Watch video: {ex['name']}", expanded=False):
                         st.video(ex["video_url"])
 
             total_ex = len(current_routine["exercises"])
             pct_done = completed_count / total_ex if total_ex > 0 else 0
-            st.progress(pct_done, text=f"Session Progress: {completed_count}/{total_ex} Exercises Completed ({int(pct_done * 100)}%)")
+            st.progress(pct_done, text=f"{completed_count} of {total_ex} exercises complete ({int(pct_done * 100)}%)")
             if completed_count == total_ex and total_ex > 0:
-                st.balloons()
-                st.success(f"🎉 **Outstanding work, {default_mem_name}!** You completed all scheduled exercises for {selected_day}!")
+                st.success(f"**Great work, {default_mem_name}.** You've completed every exercise for {selected_day}.")
 
         with c_guide2:
-            st.markdown("#### 🥗 **Daily Nutrition & Fueling Plan**")
+            section_header("Nutrition plan", level=4)
             nut = current_routine["nutrition"]
             st.markdown(f"""
             <div style="background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; padding: 14px 16px; margin-bottom: 14px;">
                 <div style="font-size: 0.8rem; color: #10B981; font-weight: 700; text-transform: uppercase;">Daily Energy Target</div>
                 <div style="font-size: 1.5rem; font-weight: 800; color: #F8FAFC; margin: 4px 0 8px 0;">{nut['calories']}</div>
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    <span style="background: rgba(59, 130, 246, 0.15); color: #60A5FA; padding: 4px 8px; border-radius: 6px; font-size: 0.82rem; font-weight: 600;">🥩 Protein: {nut['protein']}</span>
-                    <span style="background: rgba(245, 158, 11, 0.15); color: #FBBF24; padding: 4px 8px; border-radius: 6px; font-size: 0.82rem; font-weight: 600;">🍞 Carbs: {nut['carbs']}</span>
-                    <span style="background: rgba(16, 185, 129, 0.15); color: #34D399; padding: 4px 8px; border-radius: 6px; font-size: 0.82rem; font-weight: 600;">🥑 Fats: {nut['fats']}</span>
+                    <span style="background: rgba(59, 130, 246, 0.15); color: #60A5FA; padding: 4px 8px; border-radius: 6px; font-size: 0.82rem; font-weight: 600;">Protein: {nut['protein']}</span>
+                    <span style="background: rgba(245, 158, 11, 0.15); color: #FBBF24; padding: 4px 8px; border-radius: 6px; font-size: 0.82rem; font-weight: 600;">Carbs: {nut['carbs']}</span>
+                    <span style="background: rgba(16, 185, 129, 0.15); color: #34D399; padding: 4px 8px; border-radius: 6px; font-size: 0.82rem; font-weight: 600;">Fats: {nut['fats']}</span>
                 </div>
             </div>
             """, unsafe_allow_html=True)
 
-            st.markdown(f"**⚡ Pre-Workout Fueling:**")
-            st.info(f"🥣 {nut['pre_workout']}")
+            st.caption("PRE-WORKOUT")
+            st.info(f"{nut['pre_workout']}")
 
-            st.markdown(f"**🔋 Post-Workout Recovery:**")
-            st.success(f"🍗 {nut['post_workout']}")
+            st.caption("POST-WORKOUT RECOVERY")
+            st.success(f"{nut['post_workout']}")
 
-            st.markdown(f"**💧 Daily Hydration Target:**")
-            st.write(f"🚰 Minimum **{nut['water']}** of water distributed throughout the day.")
+            st.caption("HYDRATION")
+            st.write(f"At least **{nut['water']}** of water, spread across the day.")
 
     with member_tabs[4]:
-        st.markdown("### 🥗 **Smart Meal & Calorie Tracker (Photo & Menu)**")
-        st.caption(f"Track your daily nutrition, upload meal photos or select from the menu, and monitor real-time consumed vs. remaining calories for **{default_mem_name}**.")
+        section_header("Nutrition", caption=f"Log meals by photo, menu or custom entry and track calories consumed vs. remaining for {default_mem_name}.")
 
         # Goal to calorie target map
         goal_target_map = {
@@ -3334,11 +3334,11 @@ elif portal_mode == "🏋️ Gym Member / User View":
             ]
 
         # Target customization and quick adjustment expander
-        with st.expander("⚙️ **Customize Daily Caloric Budget & Target Macros**", expanded=False):
+        with st.expander("**Customize Daily Caloric Budget & Target Macros**", expanded=False):
             c_tg1, c_tg2 = st.columns([2, 2])
             with c_tg1:
                 new_cal_target = st.slider(
-                    "Daily Calorie Target (kcal):",
+                    "Daily Calorie Target (kcal)",
                     min_value=1200,
                     max_value=4500,
                     value=int(st.session_state[f"cal_budget_target_{default_mem_id}"]),
@@ -3364,23 +3364,23 @@ elif portal_mode == "🏋️ Gym Member / User View":
         # ----------------------------------------------------------------------
         # 1. LIVE CALORIE & REMAINING BUDGET METRICS
         # ----------------------------------------------------------------------
-        st.markdown("#### 📊 **Today's Energy Balance (Consumed vs. Remaining)**")
+        section_header("Today's Energy Balance (Consumed vs. Remaining)", level=4)
         
         c_met1, c_met2, c_met3, c_met4 = st.columns(4)
         with c_met1:
-            st.metric("🎯 Daily Target Budget", f"{current_cal_target:,} kcal", help="Total target energy intake for today")
+            st.metric("Daily Target Budget", f"{current_cal_target:,} kcal", help="Total target energy intake for today")
         with c_met2:
-            st.metric("🍽️ Consumed Calories", f"{consumed_cal:,.0f} kcal", f"{pct_consumed*100:.1f}% consumed", delta_color="off")
+            st.metric("Consumed Calories", f"{consumed_cal:,.0f} kcal", f"{pct_consumed*100:.1f}% consumed", delta_color="off")
         with c_met3:
             rem_delta_label = "Remaining" if remaining_cal >= 0 else "Over Budget"
             st.metric(
-                "⚡ Remaining Calories",
+                "Remaining Calories",
                 f"{max(remaining_cal, 0):,.0f} kcal" if remaining_cal >= 0 else f"{remaining_cal:,.0f} kcal",
                 f"{remaining_cal:+,.0f} kcal",
                 delta_color="normal" if remaining_cal >= 0 else "inverse"
             )
         with c_met4:
-            st.metric("🔥 Workout Burn (Est.)", f"{today_routine['calories_est']}", f"{today_day_name}'s routine", delta_color="off")
+            st.metric("Workout Burn (Est.)", f"{today_routine['calories_est']}", f"{today_day_name}'s routine", delta_color="off")
 
         # Visual progress bar
         capped_pct = min(1.0, max(0.0, pct_consumed))
@@ -3388,11 +3388,11 @@ elif portal_mode == "🏋️ Gym Member / User View":
 
         # Dynamic Status Banner
         if remaining_cal > 150:
-            st.success(f"🟢 **On Track:** You have **{remaining_cal:,.0f} kcal** remaining for today! Ensure you hit your target protein across your remaining meals.")
+            st.success(f"**On Track:** You have **{remaining_cal:,.0f} kcal** remaining for today! Ensure you hit your target protein across your remaining meals.")
         elif 0 <= remaining_cal <= 150:
-            st.warning(f"🟡 **Target Almost Reached:** You have **{remaining_cal:,.0f} kcal** remaining. Excellent adherence to your nutritional budget!")
+            st.warning(f"**Target Almost Reached:** You have **{remaining_cal:,.0f} kcal** remaining. Excellent adherence to your nutritional budget!")
         else:
-            st.error(f"⚠️ **Calorie Surplus Alert:** You have exceeded your daily budget by **{abs(remaining_cal):,.0f} kcal** ({consumed_cal:,.0f} / {current_cal_target:,} kcal). Consider balancing with additional hydration and light walking or adjust tomorrow's intake.")
+            st.error(f"**Calorie Surplus Alert:** You have exceeded your daily budget by **{abs(remaining_cal):,.0f} kcal** ({consumed_cal:,.0f} / {current_cal_target:,} kcal). Consider balancing with additional hydration and light walking or adjust tomorrow's intake.")
 
         # Macronutrient Progress Cards
         c_mac1, c_mac2, c_mac3 = st.columns(3)
@@ -3417,21 +3417,21 @@ elif portal_mode == "🏋️ Gym Member / User View":
         # ----------------------------------------------------------------------
         # 2. DUAL-INPUT SECTION: PHOTO UPLOAD VS. MENU PICKER
         # ----------------------------------------------------------------------
-        st.markdown("#### ➕ **Log Your Meal: Upload Photo or Select From Menu**")
+        section_header("Log Your Meal: Upload Photo or Select From Menu", level=4)
 
         tab_photo, tab_menu, tab_custom = st.tabs([
-            "📸 1. Upload Meal Photo",
-            "📋 2. Select From Menu Database",
-            "✏️ 3. Enter Custom Meal Item"
+            "Upload Meal Photo",
+            "Select From Menu",
+            "Custom Item"
         ])
 
         # TAB 1: UPLOAD PHOTO
         with tab_photo:
-            st.markdown("##### 📸 **AI Meal Photo Scanner & Estimator**")
+            section_header("AI Meal Photo Scanner & Estimator", level=5)
             st.caption("Snap a photo of your meal plate or food packaging. Our visual engine recognizes the dish, estimates portions, and computes calories & macros instantly.")
 
             uploaded_photo = st.file_uploader(
-                "Upload Meal Photo (JPG, PNG, JPEG, WEBP):",
+                "Upload Meal Photo (JPG, PNG, JPEG, WEBP)",
                 type=["jpg", "jpeg", "png", "webp"],
                 key=f"uploader_meal_{default_mem_id}"
             )
@@ -3447,7 +3447,7 @@ elif portal_mode == "🏋️ Gym Member / User View":
                         st.error(f"Could not load image: {e}")
 
                 with c_up_details:
-                    st.success("✅ **Meal Photo Captured & Analyzed!**")
+                    st.success("**Meal Photo Captured & Analyzed!**")
                     
                     # Smart matching logic based on filename keywords or intelligent default
                     fname_lower = uploaded_photo.name.lower()
@@ -3464,7 +3464,7 @@ elif portal_mode == "🏋️ Gym Member / User View":
 
                     preset_names = [p["name"] for p in PHOTO_MEAL_PRESETS]
                     sel_preset_name = st.selectbox(
-                        "🔍 **Detected Dish Match (Confirm or Select Closest):**",
+                        "**Detected Dish Match (Confirm or Select Closest):**",
                         preset_names,
                         index=matched_idx,
                         key=f"sel_photo_match_{default_mem_id}"
@@ -3474,14 +3474,14 @@ elif portal_mode == "🏋️ Gym Member / User View":
                     c_mult, c_slot = st.columns(2)
                     with c_mult:
                         portion_mult = st.select_slider(
-                            "Serving Portion Multiplier:",
+                            "Serving Portion Multiplier",
                             options=[0.5, 0.75, 1.0, 1.25, 1.5, 2.0],
                             value=1.0,
                             format_func=lambda x: f"{x}x ({'Half' if x==0.5 else ('Regular' if x==1.0 else ('1.5x Large' if x==1.5 else f'{x}x'))})"
                         )
                     with c_slot:
                         photo_meal_slot = st.selectbox(
-                            "Meal Slot:",
+                            "Meal Slot",
                             ["Breakfast 🌅", "Lunch 🍱", "Evening Snack ☕", "Dinner 🌙", "Pre-Workout ⚡", "Post-Workout 🔋"],
                             index=1,
                             key=f"slot_photo_{default_mem_id}"
@@ -3495,15 +3495,15 @@ elif portal_mode == "🏋️ Gym Member / User View":
 
                     st.markdown(f"""
                     <div style="background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 10px 14px; margin: 8px 0;">
-                        <div style="font-weight: 700; color: #F1F5F9;">🔥 Calculated Nutrition for this Photo:</div>
+                        <div style="font-weight: 700; color: #F1F5F9;">Calculated Nutrition for this Photo:</div>
                         <div style="font-size: 1.15rem; font-weight: 800; color: #38BDF8; margin: 2px 0 6px 0;">{calc_p_cal:,.0f} kcal</div>
                         <div style="font-size: 0.85rem; color: #CBD5E1;">
-                            🥩 Protein: <b>{calc_p_pro:.1f}g</b> &nbsp;|&nbsp; 🍞 Carbs: <b>{calc_p_carb:.1f}g</b> &nbsp;|&nbsp; 🥑 Fats: <b>{calc_p_fat:.1f}g</b>
+                            Protein: <b>{calc_p_pro:.1f}g</b> &nbsp;|&nbsp; Carbs: <b>{calc_p_carb:.1f}g</b> &nbsp;|&nbsp; Fats: <b>{calc_p_fat:.1f}g</b>
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
 
-                    if st.button("➕ Add Photo Meal to Today's Diary", type="primary", use_container_width=True, key=f"btn_add_photo_{default_mem_id}"):
+                    if st.button("Add Photo Meal to Today's Diary", type="primary", use_container_width=True, key=f"btn_add_photo_{default_mem_id}"):
                         new_meal_id = f"meal_{datetime.now().strftime('%Y%m%d%H%M%S')}"
                         st.session_state[f"member_meal_logs_{default_mem_id}"].append({
                             "id": new_meal_id,
@@ -3529,33 +3529,33 @@ elif portal_mode == "🏋️ Gym Member / User View":
                             }
                         )
                         tige.update_genome_from_event(evt)
-                        st.toast(f"✅ Added {chosen_preset['name']} (+{calc_p_cal:,.0f} kcal) to today's diary!", icon="🥗")
+                        st.toast(f"Added {chosen_preset['name']} (+{calc_p_cal:,.0f} kcal) to today's diary!", icon="🥗")
                         st.rerun()
             else:
-                st.info("💡 **Take or select a photo of your meal to begin!** Or if you know what you ate, switch to **Tab 2 (Select From Menu Database)**.")
+                st.info("**Upload a photo of your meal to begin.** If you already know what you ate, use **Select From Menu** instead.")
 
         # TAB 2: SELECT FROM MENU DATABASE
         with tab_menu:
-            st.markdown("##### 📋 **Search & Select from Curated Fitness Menu**")
+            section_header("Search & Select from Curated Fitness Menu", level=5)
             st.caption("Browse curated Indian and global fitness items with lab-tested calorie and macronutrient profiles.")
 
             c_cat, c_item = st.columns([1.5, 2.5])
             with c_cat:
                 category_list = list(FOOD_MENU_DATABASE.keys())
-                sel_category = st.selectbox("1. Select Food Category:", category_list, key=f"sel_food_cat_{default_mem_id}")
+                sel_category = st.selectbox("1. Select Food Category", category_list, key=f"sel_food_cat_{default_mem_id}")
             with c_item:
                 items_in_cat = FOOD_MENU_DATABASE[sel_category]
                 item_names = [f"{it['name']} ({it['portion']}) — {it['calories']} kcal" for it in items_in_cat]
-                sel_item_str = st.selectbox("2. Select Food Item:", item_names, key=f"sel_food_item_{default_mem_id}")
+                sel_item_str = st.selectbox("2. Select Food Item", item_names, key=f"sel_food_item_{default_mem_id}")
                 selected_item_idx = item_names.index(sel_item_str)
                 selected_food = items_in_cat[selected_item_idx]
 
             c_m_serv, c_m_slot = st.columns(2)
             with c_m_serv:
-                serving_qty = st.number_input("Portion / Serving Multiplier:", min_value=0.25, max_value=10.0, value=1.0, step=0.25, key=f"num_menu_serv_{default_mem_id}")
+                serving_qty = st.number_input("Portion / Serving Multiplier", min_value=0.25, max_value=10.0, value=1.0, step=0.25, key=f"num_menu_serv_{default_mem_id}")
             with c_m_slot:
                 menu_meal_slot = st.selectbox(
-                    "Meal Timing Slot:",
+                    "Meal Timing Slot",
                     ["Breakfast 🌅", "Lunch 🍱", "Evening Snack ☕", "Dinner 🌙", "Pre-Workout ⚡", "Post-Workout 🔋"],
                     index=1,
                     key=f"slot_menu_{default_mem_id}"
@@ -3569,15 +3569,15 @@ elif portal_mode == "🏋️ Gym Member / User View":
 
             st.markdown(f"""
             <div style="background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 10px 14px; margin: 8px 0;">
-                <div style="font-weight: 700; color: #F1F5F9;">🔥 Nutrition Subtotal: {selected_food['name']} ({serving_qty:g}x {selected_food['portion']})</div>
+                <div style="font-weight: 700; color: #F1F5F9;">Nutrition Subtotal: {selected_food['name']} ({serving_qty:g}x {selected_food['portion']})</div>
                 <div style="font-size: 1.15rem; font-weight: 800; color: #10B981; margin: 2px 0 6px 0;">{calc_m_cal:,.0f} kcal</div>
                 <div style="font-size: 0.85rem; color: #CBD5E1;">
-                    🥩 Protein: <b>{calc_m_pro:.1f}g</b> &nbsp;|&nbsp; 🍞 Carbs: <b>{calc_m_carb:.1f}g</b> &nbsp;|&nbsp; 🥑 Fats: <b>{calc_m_fat:.1f}g</b>
+                    Protein: <b>{calc_m_pro:.1f}g</b> &nbsp;|&nbsp; Carbs: <b>{calc_m_carb:.1f}g</b> &nbsp;|&nbsp; Fats: <b>{calc_m_fat:.1f}g</b>
                 </div>
             </div>
             """, unsafe_allow_html=True)
 
-            if st.button("➕ Add Menu Item to Today's Diary", type="primary", use_container_width=True, key=f"btn_add_menu_{default_mem_id}"):
+            if st.button("Add Menu Item to Today's Diary", type="primary", use_container_width=True, key=f"btn_add_menu_{default_mem_id}"):
                 new_meal_id = f"meal_{datetime.now().strftime('%Y%m%d%H%M%S')}"
                 st.session_state[f"member_meal_logs_{default_mem_id}"].append({
                     "id": new_meal_id,
@@ -3603,12 +3603,12 @@ elif portal_mode == "🏋️ Gym Member / User View":
                     }
                 )
                 tige.update_genome_from_event(evt)
-                st.toast(f"✅ Added {selected_food['name']} (+{calc_m_cal:,.0f} kcal) to today's diary!", icon="🍲")
+                st.toast(f"Added {selected_food['name']} (+{calc_m_cal:,.0f} kcal) to today's diary!", icon="🍲")
                 st.rerun()
 
         # TAB 3: CUSTOM ITEM ENTRY
         with tab_custom:
-            st.markdown("##### ✏️ **Enter Custom Food Item / Packaged Nutrition**")
+            section_header("Enter Custom Food Item / Packaged Nutrition", level=5)
             st.caption("Have an outside meal, nutrition label, or custom home recipe? Enter the exact values below.")
 
             with st.form(f"form_custom_food_{default_mem_id}"):
@@ -3617,7 +3617,7 @@ elif portal_mode == "🏋️ Gym Member / User View":
                     custom_food_name = st.text_input("Food Item Name", value="Homemade Chicken Biryani")
                     custom_portion = st.text_input("Portion / Serving Size", value="1 medium plate (250g)")
                     custom_slot = st.selectbox(
-                        "Meal Slot:",
+                        "Meal Slot",
                         ["Breakfast 🌅", "Lunch 🍱", "Evening Snack ☕", "Dinner 🌙", "Pre-Workout ⚡", "Post-Workout 🔋"],
                         index=3
                     )
@@ -3628,7 +3628,7 @@ elif portal_mode == "🏋️ Gym Member / User View":
                     with c_c_m2: custom_carb = st.number_input("Carbs (g)", min_value=0.0, max_value=500.0, value=50.0, step=1.0)
                     with c_c_m3: custom_fat = st.number_input("Fats (g)", min_value=0.0, max_value=500.0, value=12.0, step=1.0)
 
-                submit_custom = st.form_submit_button("➕ Add Custom Food to Today's Diary", type="primary", use_container_width=True)
+                submit_custom = st.form_submit_button("Add Custom Food to Today's Diary", type="primary", use_container_width=True)
                 if submit_custom:
                     new_meal_id = f"meal_{datetime.now().strftime('%Y%m%d%H%M%S')}"
                     st.session_state[f"member_meal_logs_{default_mem_id}"].append({
@@ -3655,7 +3655,7 @@ elif portal_mode == "🏋️ Gym Member / User View":
                         }
                     )
                     tige.update_genome_from_event(evt)
-                    st.toast(f"✅ Added {custom_food_name} (+{custom_cal:,.0f} kcal)!", icon="🍽️")
+                    st.toast(f"Added {custom_food_name} (+{custom_cal:,.0f} kcal)!", icon="🍽️")
                     st.rerun()
 
         st.markdown("---")
@@ -3663,14 +3663,14 @@ elif portal_mode == "🏋️ Gym Member / User View":
         # ----------------------------------------------------------------------
         # 3. TODAY'S CONSUMED MEALS DIARY & MANAGEMENT
         # ----------------------------------------------------------------------
-        st.markdown("#### 📖 **Today's Consumed Meals Diary**")
+        section_header("Today's Consumed Meals Diary", level=4)
 
         if meal_logs:
             c_d_info, c_d_clear = st.columns([3, 1])
             with c_d_info:
                 st.caption(f"Currently tracking **{len(meal_logs)} logged items** totaling **{consumed_cal:,.0f} kcal**.")
             with c_d_clear:
-                if st.button("🗑️ Clear Today's Diary", use_container_width=True, key=f"btn_clear_diary_{default_mem_id}"):
+                if st.button("Clear Today's Diary", use_container_width=True, key=f"btn_clear_diary_{default_mem_id}"):
                     st.session_state[f"member_meal_logs_{default_mem_id}"] = []
                     st.toast("Today's food diary cleared!", icon="🧹")
                     st.rerun()
@@ -3685,77 +3685,89 @@ elif portal_mode == "🏋️ Gym Member / User View":
                     st.markdown(f"**{item['calories']:,.0f} kcal**")
                     st.caption(f"P: {item['protein']:.1f}g &bull; C: {item['carbs']:.1f}g &bull; F: {item['fats']:.1f}g")
                 with col_i3:
-                    if st.button("❌", key=f"del_meal_{item['id']}_{idx}", help=f"Remove {item['name']}"):
+                    if st.button("Remove", key=f"del_meal_{item['id']}_{idx}", help=f"Remove {item['name']}"):
                         st.session_state[f"member_meal_logs_{default_mem_id}"].pop(idx)
                         st.toast(f"Removed {item['name']}", icon="🗑️")
                         st.rerun()
                 st.markdown("<hr style='margin: 4px 0 10px 0; border: none; border-top: 1px solid rgba(255,255,255,0.07);'/>", unsafe_allow_html=True)
 
             # Structured DataFrame overview
-            with st.expander("📊 **View Formatted Table Summary of Today's Intake**", expanded=False):
+            with st.expander("**View Formatted Table Summary of Today's Intake**", expanded=False):
                 df_meals = pd.DataFrame(meal_logs)
                 df_show = df_meals[["time", "slot", "name", "portion", "calories", "protein", "carbs", "fats", "source"]].copy()
                 df_show.columns = ["Time", "Meal Slot", "Food Item", "Portion", "Calories (kcal)", "Protein (g)", "Carbs (g)", "Fats (g)", "Source"]
                 st.dataframe(df_show, use_container_width=True, hide_index=True)
         else:
-            st.info("🥣 **No meals logged yet today.** Upload a photo or select from the menu above to start calculating consumed and remaining calories!")
+            st.info("**No meals logged yet today.** Upload a photo or select from the menu above to start calculating consumed and remaining calories!")
 
 # ==============================================================================
 # 4. PATENT & ARCHITECTURE DEEP-DIVE
 # ==============================================================================
 elif portal_mode == "🔬 Patent & Architecture Deep-Dive":
-    st.markdown("## 🔬 **FAM-FIOS: Architectural Verification Console**")
-    st.markdown("**Invention Disclosure Document:** `24BIT0370-24BIT0390-IDF-01` (VIT SCORE)")
+    page_header(
+        "Architecture",
+        f"Live internals of the platform engines for {active_genome.gym_name}: genome vectors, dependency fabric, formulas and security checks.",
+        eyebrow="Platform engines",
+        chips=[chip("Invention Disclosure", "24BIT0370-24BIT0390-IDF-01"), chip("VIT SCORE")]
+    )
 
     k_tabs = st.tabs([
-        "1. TIG 6-Vectors",
-        "2. DTDF Dynamic Weights",
-        "3. SICE Mathematical Convergence",
-        "4. FAFIE Differential Privacy",
-        "5. PTLM Peak Allocations",
-        "6. ACVE Penetration Testing"
+        "TIG Vectors",
+        "DTDF Fabric",
+        "SICE Formulas",
+        "FAFIE Privacy",
+        "PTLM Partitions",
+        "ACVE Security Test"
     ])
 
     with k_tabs[0]:
-        st.subheader("🧬 Tenant Isolation Genome (TIG) Vectors")
+        section_header("Tenant isolation genome", caption="The six vectors that model this gym as a digital object.")
         v1, v2, v3 = st.columns(3)
         with v1:
+            st.caption("SUBSCRIPTION")
             st.json(active_genome.subscription.model_dump())
         with v2:
+            st.caption("USAGE")
             st.json(active_genome.usage.model_dump())
         with v3:
+            st.caption("ROLE PERMISSIONS")
             st.json(active_genome.role_permission.model_dump())
         v4, v5, v6 = st.columns(3)
         with v4:
+            st.caption("RESOURCES")
             st.json(active_genome.resource.model_dump())
         with v5:
+            st.caption("COMPLIANCE")
             st.json(active_genome.compliance.model_dump())
         with v6:
+            st.caption("TRUST")
             st.json(active_genome.trust.model_dump())
 
     with k_tabs[1]:
-        st.subheader("🕸️ DTDF Dynamic Dependency Fabric")
+        section_header("Dynamic dependency fabric", caption="Weighted tenant–role–resource edges used for enforcement.")
         edges = dtdfe.get_fabric(active_tenant_id)
-        st.dataframe(pd.DataFrame([e.model_dump() for e in edges]), use_container_width=True)
+        st.dataframe(pd.DataFrame([e.model_dump() for e in edges]), use_container_width=True, hide_index=True)
 
     with k_tabs[2]:
-        st.subheader("⚡ SICE Algorithmic Convergence Formula")
-        st.latex(r"\hat{M}_{end} = M_{active} + (v \times d_{rem})")
-        st.latex(r"C_{prorated} = (Price_{next} - Price_{current}) \times \frac{d_{rem}}{30}")
+        section_header("Subscription convergence", caption="Projected month-end members and the prorated upgrade price.")
+        with st.container(border=True):
+            st.latex(r"\hat{M}_{end} = M_{active} + (v \times d_{rem})")
+            st.latex(r"C_{prorated} = (Price_{next} - Price_{current}) \times \frac{d_{rem}}{30}")
 
     with k_tabs[3]:
-        st.subheader("🧠 FAFIE Differential Privacy Guarantees")
-        st.latex(r"g_{clipped} = \frac{g}{\max\left(1, \frac{\|g\|_2}{C}\right)}, \quad g_{dp} = g_{clipped} + \mathcal{N}(0, \sigma^2)")
+        section_header("Differential privacy", caption="Gradient clipping followed by Gaussian noise before updates leave a gym.")
+        with st.container(border=True):
+            st.latex(r"g_{clipped} = \frac{g}{\max\left(1, \frac{\|g\|_2}{C}\right)}, \quad g_{dp} = g_{clipped} + \mathcal{N}(0, \sigma^2)")
 
     with k_tabs[4]:
-        st.subheader("🕒 PTLM Partition Allocations")
-        st.write(f"Active Pre-Materialized Partitions: **{active_genome.resource.materialized_partitions} Partitions**")
+        section_header("Partition allocation", caption="Database partitions pre-materialized ahead of forecast peaks.")
+        st.metric("Active pre-materialized partitions", active_genome.resource.materialized_partitions)
 
     with k_tabs[5]:
-        st.subheader("⚔️ ACVE Security & Penetration Testing")
-        if st.button("🚨 Simulate Cross-Tenant Unauthorized Intrusion"):
+        section_header("Cross-tenant intrusion test", caption="Sends an action from a foreign tenant and shows how ACVE blocks it.")
+        if st.button("Run intrusion test", type="primary"):
             bad_intent = IntentObject(tenant_id=active_tenant_id, source_agent="IntrusionAgent", proposed_action="ENROLL_MEMBER")
             is_valid, verdict, violations = acve.verify_action_intent(bad_intent, caller_role="gym_admin", caller_tenant_id="tenant_foreign_attacker")
-            st.error(f"ACVE Security Gatekeeper Verdict: {verdict}")
-            st.write(f"Violations Caught: `{violations}`")
-            st.success("Tenant isolation boundary 100% defended.")
+            st.error(f"ACVE verdict: {verdict}")
+            st.write(f"Violations caught: `{violations}`")
+            st.success("Blocked — the tenant isolation boundary held.")
