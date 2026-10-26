@@ -1,7 +1,16 @@
 """
 Amazon Web Services (AWS) Simple Notification Service (SNS) Adapter for FAM-FIOS.
-Handles real transactional SMS dispatch of 6-digit verification OTPs to mobile phones
-with high carrier priority and graceful sandbox simulation fallback.
+Handles real transactional SMS dispatch of 6-digit verification OTPs to mobile phones.
+
+Credentials are resolved in this order:
+  1. Keys entered in the app for the current session (custom_credentials)
+  2. boto3's default chain: environment variables, ~/.aws, or the EC2 instance
+     role (e.g. LabInstanceProfile) — no keys need to be pasted on EC2.
+
+The OTP is never returned for display: if SMS can't be sent, the result says so.
+
+Optional environment variables for Indian (TRAI DLT) delivery:
+  SNS_SMS_SENDER_ID, SNS_SMS_ENTITY_ID, SNS_SMS_TEMPLATE_ID
 """
 
 import os
@@ -53,44 +62,68 @@ class AwsSnsService:
     """Enterprise AWS SNS Client for Transactional SMS Verification."""
 
     def __init__(self):
-        self.default_region = os.environ.get("AWS_DEFAULT_REGION", os.environ.get("AWS_REGION", "ap-south-1"))
+        self.default_region = os.environ.get("AWS_DEFAULT_REGION", os.environ.get("AWS_REGION", "us-east-1"))
 
-    def get_credentials(self, custom_credentials: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
-        """Resolves AWS credentials from custom input or environment variables."""
+    def _session(self, custom_credentials: Optional[Dict[str, str]] = None):
+        """Builds a boto3 session from session-entered keys, or boto3's default credential chain."""
         if custom_credentials and custom_credentials.get("aws_access_key_id"):
-            return {
-                "aws_access_key_id": custom_credentials.get("aws_access_key_id", "").strip(),
-                "aws_secret_access_key": custom_credentials.get("aws_secret_access_key", "").strip(),
-                "region_name": custom_credentials.get("region_name", self.default_region).strip() or self.default_region
-            }
-        
-        access_key = os.environ.get("AWS_ACCESS_KEY_ID", "").strip()
-        secret_key = os.environ.get("AWS_SECRET_ACCESS_KEY", "").strip()
-        region = os.environ.get("AWS_DEFAULT_REGION", os.environ.get("AWS_REGION", self.default_region)).strip()
-        
-        return {
-            "aws_access_key_id": access_key,
-            "aws_secret_access_key": secret_key,
-            "region_name": region
-        }
+            return boto3.Session(
+                aws_access_key_id=custom_credentials.get("aws_access_key_id", "").strip(),
+                aws_secret_access_key=custom_credentials.get("aws_secret_access_key", "").strip(),
+                aws_session_token=(custom_credentials.get("aws_session_token") or "").strip() or None,
+                region_name=(custom_credentials.get("region_name") or "").strip() or self.default_region
+            )
+        return boto3.Session(region_name=self.default_region)
 
     def check_sns_configuration(self, custom_credentials: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
-        """Inspects whether active AWS credentials are ready for SMS dispatch."""
-        creds = self.get_credentials(custom_credentials)
-        has_creds = bool(creds.get("aws_access_key_id") and creds.get("aws_secret_access_key"))
-        
+        """Inspects whether AWS credentials are available for SMS dispatch."""
+        if not BOTO3_AVAILABLE:
+            return {
+                "configured": False,
+                "boto3_available": False,
+                "region": self.default_region,
+                "masked_key": "",
+                "source": "",
+                "status": "NOT_CONFIGURED"
+            }
+
+        session = self._session(custom_credentials)
+        try:
+            creds = session.get_credentials()
+        except (BotoCoreError, ClientError, Exception):
+            creds = None
+
         masked_key = ""
-        if has_creds:
-            k = creds["aws_access_key_id"]
+        source = ""
+        if creds is not None:
+            k = creds.access_key or ""
             masked_key = f"{k[:4]}****{k[-4:]}" if len(k) >= 8 else "****"
+            source = getattr(creds, "method", "") or ""
 
         return {
-            "configured": has_creds and BOTO3_AVAILABLE,
-            "boto3_available": BOTO3_AVAILABLE,
-            "region": creds.get("region_name", self.default_region),
+            "configured": creds is not None,
+            "boto3_available": True,
+            "region": session.region_name or self.default_region,
             "masked_key": masked_key,
-            "status": "READY" if (has_creds and BOTO3_AVAILABLE) else "SIMULATION_MODE"
+            "source": source,
+            "status": "READY" if creds is not None else "NOT_CONFIGURED"
         }
+
+    @staticmethod
+    def _message_attributes() -> Dict[str, Dict[str, str]]:
+        """Transactional SMS attributes, plus optional DLT registration values for India."""
+        attrs = {
+            "AWS.SNS.SMS.SMSType": {"DataType": "String", "StringValue": "Transactional"}
+        }
+        optional = {
+            "AWS.SNS.SMS.SenderID": os.environ.get("SNS_SMS_SENDER_ID", "").strip(),
+            "AWS.MM.SMS.EntityId": os.environ.get("SNS_SMS_ENTITY_ID", "").strip(),
+            "AWS.MM.SMS.TemplateId": os.environ.get("SNS_SMS_TEMPLATE_ID", "").strip(),
+        }
+        for name, value in optional.items():
+            if value:
+                attrs[name] = {"DataType": "String", "StringValue": value}
+        return attrs
 
     def send_sms_otp(
         self,
@@ -100,72 +133,59 @@ class AwsSnsService:
     ) -> Dict[str, Any]:
         """
         Dispatches transactional SMS via Amazon SNS.
-        If credentials are not configured or dispatch fails, gracefully falls back to simulation.
+        Returns success=False (and never a displayable code) if credentials are
+        missing or SNS rejects the message.
         """
         e164_phone = format_e164(phone_number)
         config = self.check_sns_configuration(custom_credentials)
-        
-        # 1. Fallback to simulation if not configured
+
         if not config["configured"]:
-            sim_ref = f"SIM-SNS-{secrets.token_hex(3).upper()}"
             return {
-                "success": True,
-                "mode": "simulation",
-                "message_id": sim_ref,
+                "success": False,
+                "mode": "not_configured",
+                "error": "No AWS credentials available for Amazon SNS.",
+                "message_id": None,
                 "phone": e164_phone,
                 "region": config["region"],
-                "status_text": "Sandbox Simulation Mode (Live AWS credentials not active)",
-                "simulated": True
+                "status_text": "SMS service is not configured (no AWS credentials or instance role).",
+                "simulated": False
             }
 
-        # 2. Attempt real Amazon SNS Publish
         try:
-            creds = self.get_credentials(custom_credentials)
-            client = boto3.client(
-                "sns",
-                region_name=creds["region_name"],
-                aws_access_key_id=creds["aws_access_key_id"],
-                aws_secret_access_key=creds["aws_secret_access_key"]
-            )
-            
+            client = self._session(custom_credentials).client("sns", region_name=config["region"])
+
             message_body = (
-                f"FAM-FIOS Security: Your gym pass login OTP is {otp_code}. "
-                f"Valid for 5 minutes. (Ref: {otp_code[:3]})"
+                f"FAM-FIOS: Your login OTP is {otp_code}. "
+                f"Valid for 5 minutes. Do not share it with anyone."
             )
-            
+
             response = client.publish(
                 PhoneNumber=e164_phone,
                 Message=message_body,
-                MessageAttributes={
-                    "AWS.SNS.SMS.SMSType": {
-                        "DataType": "String",
-                        "StringValue": "Transactional"
-                    }
-                }
+                MessageAttributes=self._message_attributes()
             )
-            
+
             aws_msg_id = response.get("MessageId", f"AWS-{secrets.token_hex(4)}")
             return {
                 "success": True,
                 "mode": "aws_sns",
                 "message_id": aws_msg_id,
                 "phone": e164_phone,
-                "region": creds["region_name"],
-                "status_text": f"Live SMS Dispatched via Amazon SNS (MessageId: {aws_msg_id})",
+                "region": config["region"],
+                "status_text": f"SMS accepted by Amazon SNS (MessageId: {aws_msg_id})",
                 "simulated": False
             }
 
         except (BotoCoreError, ClientError, Exception) as err:
-            sim_ref = f"SIM-SNS-FALLBACK-{secrets.token_hex(3).upper()}"
             return {
                 "success": False,
-                "mode": "simulation",
+                "mode": "aws_sns_error",
                 "error": str(err),
-                "message_id": sim_ref,
+                "message_id": None,
                 "phone": e164_phone,
                 "region": config["region"],
-                "status_text": f"AWS SNS Notification Notice: {str(err)} (Fallback to Sandbox)",
-                "simulated": True
+                "status_text": f"Amazon SNS rejected the SMS: {err}",
+                "simulated": False
             }
 
 

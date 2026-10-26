@@ -4,7 +4,7 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%20%7C%203.11-blue.svg)](https://www.python.org/downloads/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.30+-red.svg)](https://streamlit.io/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-green.svg)](https://fastapi.tiangolo.com/)
-[![Tests Passing](https://img.shields.io/badge/tests-38%2F38%20passing-brightgreen.svg)](https://github.com/tanishka360/fam-fios/actions)
+[![Tests Passing](https://img.shields.io/badge/tests-40%2F40%20passing-brightgreen.svg)](https://github.com/tanishka360/fam-fios/actions)
 [![AWS](https://img.shields.io/badge/AWS-SNS%20%7C%20S3%20Vault-orange.svg)](https://aws.amazon.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg)](https://www.docker.com/)
 [![Patent](https://img.shields.io/badge/Invention%20Disclosure-24BIT0370--24BIT0390--IDF--01-yellow.svg)](https://vit.ac.in)
@@ -80,9 +80,9 @@ The complete interactive operating system is delivered via **Streamlit** (`strea
 
 ### 1. 🔐 Zero-Password OTP Authentication (AWS SNS Integrated)
 - **Passwordless Mobile & Email Login**: Members, trainers, and gym administrators authenticate without passwords using their registered Mobile Number (e.g. `+91 78880 85822`) or Email.
-- **AWS SNS SMS Gateway**: Dispatches live one-time passwords via Amazon Simple Notification Service with E.164 phone formatting and carrier sandbox fallback.
+- **AWS SNS SMS Gateway**: Sends one-time passwords by SMS via Amazon Simple Notification Service with E.164 phone formatting. On EC2 it uses the instance's IAM role (e.g. `LabInstanceProfile`) automatically. The code is never shown on screen; if the SMS can't be sent, the login page shows an error.
 - **Cryptographic OTP Generation**: 6-digit numeric OTPs generated via CSPRNG (`secrets.randbelow`) and verified using constant-time HMAC digest comparisons (`hmac.compare_digest`) to eliminate side-channel timing attacks.
-- **1-Click Auto-Fill OTP**: Instant test fill button (`⚡ 1-Click Auto-Fill OTP`) alongside quick demo personas (**Tanishka Shah**, **Sarah Jenkins**, **Titan Executive Admin**, **Coach Alex**).
+- **Quick Demo Personas**: One-click persona buttons (**Tanishka Shah**, **Sarah Jenkins**, **Titan Executive Admin**, **Coach Alex**) for selecting a demo account.
 - **Role-Based Dynamic Redirection**:
   - **Members** ➔ Seamlessly routed to **Member Fitness Dashboard** with their personalized pass and attendance records.
   - **Admins** ➔ Routed to **Gym Owner Command Center** with full facility controls unlocked.
@@ -163,9 +163,9 @@ The complete interactive operating system is delivered via **Streamlit** (`strea
 
 ---
 
-## 🧪 Comprehensive Automated Test Matrix (38 Tests Passing)
+## 🧪 Comprehensive Automated Test Matrix (40 Tests Passing)
 
-All 38 unit and integration tests execute with a 100% pass rate:
+All 40 unit and integration tests execute with a 100% pass rate:
 
 ```powershell
 pytest backend/tests -v
@@ -176,7 +176,7 @@ pytest backend/tests -v
 | `test_acve.py` | ACVE cross-tenant isolation firewall & RBAC interception | **PASSED (2/2)** |
 | `test_auth_and_db.py` | PBKDF2 hashing, JWT verification, SQLite ORM, tenant boundaries | **PASSED (5/5)** |
 | `test_aws_s3.py` | Amazon S3 encrypted vault, Boto3 client mock, FAFIE checkpointing | **PASSED (6/6)** |
-| `test_aws_sns.py` | AWS SNS E.164 phone normalization, SMS push simulation, Boto3 dispatch | **PASSED (5/5)** |
+| `test_aws_sns.py` | AWS SNS E.164 phone normalization, Boto3 dispatch, DLT attributes, failure reporting | **PASSED (7/7)** |
 | `test_closed_loop.py` | Complete closed-loop federated telemetry & genome adaptation | **PASSED (1/1)** |
 | `test_closed_loop_failure.py` | Failure injection, ACVE halt verification, TEK penalty convergence | **PASSED (2/2)** |
 | `test_dtdfe.py` | Dynamic tenant dependency fabric graph reweighting | **PASSED (1/1)** |
@@ -186,7 +186,7 @@ pytest backend/tests -v
 | `test_ptlm.py` | Predictive peak demand pre-allocation (-45 minutes) | **PASSED (1/1)** |
 | `test_sice.py` | Capacity threshold breach prediction & prorated upgrade synthesis | **PASSED (1/1)** |
 | `test_tig.py` | TIGE genome vector initialization, mutations, and cryptographic hashing | **PASSED (2/2)** |
-| **Total** | **38 Test Cases Across 13 Modules** | **100% PASS** |
+| **Total** | **40 Test Cases Across 13 Modules** | **100% PASS** |
 
 ---
 

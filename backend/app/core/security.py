@@ -95,7 +95,11 @@ def generate_login_otp(
     custom_aws_credentials: Optional[Dict[str, str]] = None,
     custom_smtp_credentials: Optional[Dict[str, str]] = None
 ) -> Dict[str, Any]:
-    """Generates a secure, 6-digit numeric OTP valid for 5 minutes and dispatches it via AWS SNS (SMS) or SMTP/SES (Email)."""
+    """
+    Generates a secure, 6-digit numeric OTP valid for 5 minutes and dispatches it via
+    AWS SNS (SMS) or SMTP (Email). The OTP is only stored for verification when the
+    message was actually handed to a live gateway; check the returned "delivered" flag.
+    """
     from app.services.aws_sns import aws_sns_service
     from app.services.email_service import email_service
     normalized = _normalize_identifier(identifier)
@@ -108,7 +112,7 @@ def generate_login_otp(
     
     dispatch_info: Dict[str, Any] = {}
     if channel == "SMS":
-        # Dispatch via AWS SNS (or fallback to simulation)
+        # Dispatch via AWS SNS
         dispatch_info = aws_sns_service.send_sms_otp(
             phone_number=identifier,
             otp_code=otp_code,
@@ -135,9 +139,18 @@ def generate_login_otp(
         "aws_message_id": dispatch_info.get("message_id"),
         "aws_status_text": dispatch_info.get("status_text"),
         "is_simulated": dispatch_info.get("simulated", True),
-        "region": dispatch_info.get("region", "ap-south-1")
+        "region": dispatch_info.get("region", "us-east-1")
     }
-    _ACTIVE_OTPS[normalized] = otp_record
+    # Only a live gateway counts as delivery; simulated sends never produce a usable OTP
+    delivered = bool(dispatch_info.get("success")) and not dispatch_info.get("simulated", True)
+    otp_record["delivered"] = delivered
+    otp_record["dispatch_error"] = None if delivered else (
+        dispatch_info.get("error") or dispatch_info.get("status_text") or f"{channel} delivery is not configured."
+    )
+    if delivered:
+        _ACTIVE_OTPS[normalized] = otp_record
+    else:
+        _ACTIVE_OTPS.pop(normalized, None)
     return otp_record
 
 def verify_login_otp(identifier: str, input_otp: str) -> Tuple[bool, str]:
