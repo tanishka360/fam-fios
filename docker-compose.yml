@@ -24,6 +24,13 @@ services:
       - SNS_SMS_SENDER_ID=${SNS_SMS_SENDER_ID:-}
       - SNS_SMS_ENTITY_ID=${SNS_SMS_ENTITY_ID:-}
       - SNS_SMS_TEMPLATE_ID=${SNS_SMS_TEMPLATE_ID:-}
+      # Email OTP delivery (e.g. Gmail + App Password). Set these in a .env file next to
+      # this compose file on the server — it's git-ignored, so secrets never reach GitHub.
+      - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SMTP_FROM_EMAIL=${SMTP_FROM_EMAIL:-}
     volumes:
       # Persistent local storage for sandbox S3 vault
       - famfios_storage:/app/backend/app/storage/s3_sandbox
